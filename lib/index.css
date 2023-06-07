@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== BEGIN SCREEN SIZE SPECIFIC STYLES ===== */
+/* Styles cascade down, with styles for desktop  */
+/* applying to all sizes, tablet styles applying */
+/* to tablet and mobile, and mobile styles being */
+/* mobile specific.                              */
+/* ============================================= */
+
+@media screen and (max-width: 1050px) {}
+
+/* END SCREEN MAX-WIDTH 1050px */
+/* =========================== */
+
+
+@media screen and (max-width:767px) {}
+
+/* END SCREEN MAX-WIDTH 767px */
+/* ========================== */
+
+
+@media screen and (max-width:479px) {}
+
+/* END SCREEN MAX-WIDTH 479px */
+/* ========================== */
+
+.hidden {
+  display: none !important;
+}
