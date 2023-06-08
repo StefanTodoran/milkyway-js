@@ -36,7 +36,7 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
     print("\n> unmodified path:", self.path)
-    self.path = directory + self.path
+    self.path = directory + self.path.replace("/milkyway-js/", "/")
     print("> with directory:", self.path)
     
     home_paths = ["/", "/docs/"]
