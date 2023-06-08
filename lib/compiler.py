@@ -31,18 +31,23 @@ def writeDataToFile(path: str, lines: list):
 
 def locateAllPages(root: str = ""):
   dir = Path(root)
-  pages = sorted(dir.glob("*.html"))
+  pages = sorted(dir.glob("*.mhtml"))
   output(f"Located {len(pages)} site pages...")
   return pages
 
 def extractComponentName(line):
-    pattern = r"<!--\s*%MWC\s*([A-Za-z]+)\s*-->"
+    pattern = r"<!--\s*%MILKY\s*([A-Za-z]+)\s*-->"
     match = re.search(pattern, line)
     if match:
         component_name = match.group(1)
         return component_name.strip()
     else:
         return None
+
+def getSavePath(path):
+    filename = os.path.basename(path)
+    base, extension = os.path.splitext(filename)
+    return base + ".html"
 
 # ======== #
 #   MAIN   #
@@ -63,7 +68,7 @@ def compile(doOutput = True):
     
       if component:
         output(f"Found '{component}' component indicator, searching for file...")
-        path = "./components/" + component.lower() + ".mwc"
+        path = "./components/" + component.lower() + ".mcomp"
         if not os.path.exists(path):
           raise NameError(path + " does not exist!")
         
@@ -76,7 +81,7 @@ def compile(doOutput = True):
 
       index += 1
 
-    writeDataToFile(os.path.basename(page), writeLines)
+    writeDataToFile(getSavePath(page), writeLines)
 
   print(f"Compiled all {len(pages)} HTML files found\n")
 
