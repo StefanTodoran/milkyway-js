@@ -1,6 +1,6 @@
 import sys
 import os
-from manage.server import serve
+from lib.server import serve
 
 intro = r"""
         _ _ _                               __  __    

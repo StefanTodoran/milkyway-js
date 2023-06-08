@@ -1,4 +1,3 @@
-import sys
 import os
 import re
 import copy
@@ -48,9 +47,9 @@ def extractComponentName(line):
 # ======== #
 #   MAIN   #
 
-def main():
+def compile(doOutput = True):
   global silent
-  silent = False
+  silent = not doOutput
   output("\nStarting MilkywayJS compilation...")
 
   pages = locateAllPages("./pages/")
@@ -69,6 +68,9 @@ def main():
           raise NameError(path + " does not exist!")
         
         componentLines = readFileData(path)
+        if componentLines[-1] != "\n":
+          componentLines[-1] += "\n"
+
         writeLines.pop(index)
         writeLines[index:index] = componentLines
 
@@ -76,5 +78,7 @@ def main():
 
     writeDataToFile(os.path.basename(page), writeLines)
 
+  print(f"Compiled all {len(pages)} HTML files found\n")
+
 if __name__ == "__main__":
-  main()
+  compile()

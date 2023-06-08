@@ -1,5 +1,6 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_css_file
+from .compiler import compile
 import sys
 import os
 
@@ -38,17 +39,10 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
       self.path += ".html"
       print("> extension added:", self.path)
 
-    # if watch and headerWatcher.check():
-    #   print("> header modified, building new header...")
-      
-      # with open("header.py", "rb") as source_file:
-      #   code = compile(source_file.read(), "/manage/header.py", "exec")
-      # sys.argv = ["server.py"] # so that __name__ != "__main__"
-      # exec(code, {})
-    
+    if watch: compile(doOutput=False)
     if watch and cssWatcher.check():
       print("> css modified, minifying stylesheet...")
-      process_single_css_file("assets/index.css", overwrite=False, output_path="lib/index.min.css")
+      process_single_css_file("assets/index.css", overwrite=False, output_path="dist/index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
 
