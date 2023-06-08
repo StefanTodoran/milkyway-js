@@ -76,7 +76,7 @@ def serve(rootDirectory = "", watchChanges = False):
   watch = watchChanges
 
   if watch:
-    # headerWatcher = FileWatcher("header.html")
+    print("Watching for css and component changes...")
     cssWatcher = FileWatcher("assets/index.css")
   
   if directory == "":

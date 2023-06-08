@@ -7,7 +7,6 @@ window.addEventListener("load", main);
 // var globalVarC = null;
 
 function main() {
-  console.log("Starting website...");
   initializeMagicText(3, 1000);
   initializeCommandSnippets();
 }

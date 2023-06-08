@@ -1,51 +1,58 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
 import sys
 import os
+from manage.server import serve
 
 intro = r"""
- _____         _ _ _        _____                 
-|  |  |___ ___|_| | |___   | __  |___ ___ ___ ___ 
-|  |  | .'|   | | | | .'|  | __ -| . |   | -_|_ -|
- \___/|__,|_|_|_|_|_|__,|  |_____|___|_|_|___|___|
-          - Workflow Management Script -          
+        _ _ _                               __  __    
+  /\/\ (_) | | ___   ___      ____ _ _   _  \ \/ _\   
+ /    \| | | |/ / | | \ \ /\ / / _` | | | |  \ \ \    
+/ /\/\ \ | |   <| |_| |\ V  V / (_| | |_| /\_/ /\ \   
+\/    \/_|_|_|\_\\__, | \_/\_/ \__,_|\__, \___/\__/   
+                 |___/               |___/            
+            - Workflow Management Script -            
 """
 
-# ============ #
-# *** MAIN *** #
+def usage(message: str = ""):
+  if message != "":
+    message += " "
+
+  print("\n" + message + "Usage:")
+  print("python serve.py runserver [--watch] [--docs]")
+  print("python serve.py build\n")
 
 def main():
   if len(sys.argv) == 1:
-    print("No command provided. Usage:")
-    print("python serve.py runserver [--watch] [--docs]")
-    print("python serve.py build")
+    usage("No command provided!")
 
-  elif sys.argv[1] == "build":
+  elif sys.argv[1] == "build" and len(sys.argv) == 2:
     pass
 
   elif sys.argv[1] == "runserver":
-    dir_flags = ["--docs", "--production"]
-    head_flags = ["--watch"]
-
-    if sys.argv[1] in dir_flags:
-      directory = "/docs"
-      prepare(f"Recieved '{sys.argv[1]}' flag, serving from /docs/ directory...")
-      run(HTTPServer, NoExtensionHandler)
-
-    elif sys.argv[1] in head_flags:
-      watch = True
-      watcher = FileWatcher("header.html")
-      print("Serving from root directory...")
-      prepare(f"Recieved '{sys.argv[1]}' flag, watching header.html for changes...")
-      run(HTTPServer, NoExtensionHandler)
+    if len(sys.argv) == 2:
+      serve()
     
-    else:
-      print(f"Invalid flag provided. Expected one of {str(dir_flags + head_flags)}, got '{sys.argv[1]}'")
+    elif len(sys.argv) == 3:
+      dir_flags = ["--docs", "-d"]
+      watch_flags = ["--watch", "-w"]
 
+      if sys.argv[2] in dir_flags:
+        os.system('cls' if os.name=='nt' else 'clear')
+        print(intro)
+        serve(rootDirectory="/docs")
+
+      elif sys.argv[2] in watch_flags:
+        os.system('cls' if os.name=='nt' else 'clear')
+        print(intro)
+        serve(watchChanges=True)
+      
+      else:
+        print(f"Invalid flag provided. Expected one of {str(dir_flags + watch_flags)}, got '{sys.argv[2]}'")
+
+    else:
+      usage(f"Invalid number of arguments! Note that flags are mutually exclusive.\nExpected at most 2, recieved {len(sys.argv) - 1}.")
+  
   else:
-    # We can serve from the docs folder or watch for head changes, but it doesn't make sense to do both. 
-    print(f"Invalid number of arguments. Flags are mutually exclusive. Expected at most 1, got {len(sys.argv) - 1}")
+    usage("Invalid command provided!")
 
 if __name__ == "__main__":
-  os.system('cls' if os.name=='nt' else 'clear')
-  print(intro)
   main()
