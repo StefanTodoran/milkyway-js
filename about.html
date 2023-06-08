@@ -16,22 +16,24 @@
   <script src="dist/index.js" type="module"></script>
 </head>
 
-<body>
-  <section class="main-content">
-    <h1><span class="magic-text">Milkyway</span>JS</h1>
+<body id="scroll-to-top">
+  <canvas id="star-canvas"></canvas>
 
-    <p>Run <span class="command-snippet">manage.py build</span> to build for production!</p>
+  <section class="main-content">
+    <h1 class="animated-item pop-in"><span class="magic-text">Milkyway</span>JS</h1>
+
+    <p>Run <span class="command-snippet" tabindex="0">manage.py build</span> to build for production!</p>
     <p>Click <a class="magic-text" href="/">this link</a> to go back.</p>
   </section>
 
-<section id="footer">
+<section id="footer" class="animated-item fade-in">
   <div class="divider"></div>
   <div id="footer-links">
-    <a href="https://stefantodoran.github.io/" target="_blank" class="footer-link">
+    <a href="https://stefantodoran.github.io/" target="_blank" class="footer-link hover-tooltip" style="--content: 'Work Together ❤️'">
       <img src="assets/leaf-logo.png" height="15" alt="" class="tiny-logo" />
       <span>Website Design</span>
     </a>
-    <a id="scroll-top-button" href="#scroll-to-top" class="footer-link">
+    <a id="scroll-top-button" href="#scroll-to-top" class="footer-link hover-tooltip" style="--content: 'Scroll Top ☝️'">
       <span>© Todoran Technologies</span>
     </a>
   </div>

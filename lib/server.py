@@ -1,6 +1,7 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_css_file
 from .compiler import compile
+import subprocess
 import sys
 import os
 
@@ -22,10 +23,15 @@ def prepare(message: str):
 # ============== #
 # *** SERVER *** #
 
-def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler):
+def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc=None):
   server_address = ("", 8080)
   httpd = server_class(server_address, handler_class)
-  httpd.serve_forever()
+
+  try:
+    httpd.serve_forever()
+  except:
+    print("Recieved keyboard interrupt, killing TypeScript compiler and exiting...\n")
+    bg_proc.kill()
 
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
@@ -69,6 +75,17 @@ def serve(rootDirectory = "", watchChanges = False):
   directory = rootDirectory
   watch = watchChanges
 
+  compile(doOutput=False)
+  process_single_css_file("assets/index.css", overwrite=False, output_path="dist/index.min.css")
+
+  try:
+    # start the ts compiler in the bg with no ouput
+    FNULL = open(os.devnull, 'w')
+    print("\nStarting TypeScript compiler...") 
+    tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+  except:
+    raise EnvironmentError("Failed to start TypeScript compiler, verify npx and tsc are installed.")
+
   if watch:
     print("Watching for css and component changes...")
     cssWatcher = FileWatcher("assets/index.css")
@@ -78,7 +95,7 @@ def serve(rootDirectory = "", watchChanges = False):
   else: 
     prepare(f"Serving from {directory} directory...")
 
-  run(HTTPServer, NoExtensionHandler)
+  run(HTTPServer, NoExtensionHandler, tsc)
 
 # ============ #
 # *** MAIN *** #

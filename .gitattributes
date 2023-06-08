@@ -1,0 +1,3 @@
+dist/index.min.css linguist-generated
+*.mcomp linguist-detectable linguist-language=HTML
+*.mhtml linguist-detectable linguist-language=HTML

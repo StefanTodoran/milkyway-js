@@ -37,8 +37,11 @@ manage.py runserver --docs
 
 ## Keep in Mind
 
+This isn't meant to be a web framework. It is merely a useful template for medium sized projects, where the goal is non-trivial but also not complex enough to warrant the large overhead of a JS framework.
+
 ## TODO
 
-* 
-* 
-* 
+* Finish build script for manage.py
+* Make components able to be inline with other tags
+* Add more basic template HTML, CSS and TS
+* Investiage ways of having basic component props?

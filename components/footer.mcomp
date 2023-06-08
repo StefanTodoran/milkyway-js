@@ -1,11 +1,11 @@
-<section id="footer">
+<section id="footer" class="animated-item fade-in">
   <div class="divider"></div>
   <div id="footer-links">
-    <a href="https://stefantodoran.github.io/" target="_blank" class="footer-link">
+    <a href="https://stefantodoran.github.io/" target="_blank" class="footer-link hover-tooltip" style="--content: 'Work Together ❤️'">
       <img src="assets/leaf-logo.png" height="15" alt="" class="tiny-logo" />
       <span>Website Design</span>
     </a>
-    <a id="scroll-top-button" href="#scroll-to-top" class="footer-link">
+    <a id="scroll-top-button" href="#scroll-to-top" class="footer-link hover-tooltip" style="--content: 'Scroll Top ☝️'">
       <span>© Todoran Technologies</span>
     </a>
   </div>

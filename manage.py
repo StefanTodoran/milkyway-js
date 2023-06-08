@@ -25,7 +25,7 @@ def main():
     usage("No command provided!")
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
-    pass
+    raise NotImplementedError("The build command is not yet implemented!")
 
   elif sys.argv[1] == "runserver":
     if len(sys.argv) == 2:

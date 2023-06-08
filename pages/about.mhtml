@@ -16,11 +16,13 @@
   <script src="dist/index.js" type="module"></script>
 </head>
 
-<body>
-  <section class="main-content">
-    <h1><span class="magic-text">Milkyway</span>JS</h1>
+<body id="scroll-to-top">
+  <canvas id="star-canvas"></canvas>
 
-    <p>Run <span class="command-snippet">manage.py build</span> to build for production!</p>
+  <section class="main-content">
+    <h1 class="animated-item pop-in"><span class="magic-text">Milkyway</span>JS</h1>
+
+    <p>Run <span class="command-snippet" tabindex="0">manage.py build</span> to build for production!</p>
     <p>Click <a class="magic-text" href="/">this link</a> to go back.</p>
   </section>
 

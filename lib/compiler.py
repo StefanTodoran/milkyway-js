@@ -14,7 +14,7 @@ def output(data):
 def readFileData(path: str):
   output("Reading HTML data from " + str(path))
 
-  with open(path, "r") as file:
+  with open(path, "r", encoding="utf8") as file:
     lines = file.readlines()
     file.close()
 
@@ -23,7 +23,7 @@ def readFileData(path: str):
 def writeDataToFile(path: str, lines: list):
   output("Writing compiled HTML data to " + path)
 
-  with open(path, "w") as file:
+  with open(path, "w", encoding="utf8") as file:
     file.writelines(lines)
 
 # =============== #
@@ -36,7 +36,7 @@ def locateAllPages(root: str = ""):
   return pages
 
 def extractComponentName(line):
-    pattern = r"<!--\s*%MILKY\s*([A-Za-z]+)\s*-->"
+    pattern = r"<!--\s*%MILKY\s*([A-Za-z\-]+)\s*-->"
     match = re.search(pattern, line)
     if match:
         component_name = match.group(1)
