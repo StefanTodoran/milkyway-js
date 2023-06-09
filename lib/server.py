@@ -30,8 +30,10 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
   try:
     httpd.serve_forever()
   except:
-    print("Recieved keyboard interrupt, killing TypeScript compiler and exiting...\n")
-    bg_proc.kill()
+    if watch:
+      print("Recieved keyboard interrupt, killing TypeScript compiler and exiting...")
+      bg_proc.kill()
+    print("")
 
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
@@ -51,7 +53,7 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
     if watch: compile(doOutput=False)
     if watch and cssWatcher.check():
       print("> css modified, minifying stylesheet...")
-      process_single_css_file("assets/index.css", overwrite=False, output_path="dist/index.min.css")
+      process_single_css_file("src/index.css", overwrite=False, output_path="dist/index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
 
@@ -80,26 +82,29 @@ def serve(rootDirectory = "", watchChanges = False, pagesRedirect = ""):
   redirect = pagesRedirect
 
   compile(doOutput=False)
-  process_single_css_file("assets/index.css", overwrite=False, output_path="dist/index.min.css")
-
-  try:
-    # start the ts compiler in the bg with no ouput
-    FNULL = open(os.devnull, 'w')
-    print("\nStarting TypeScript compiler...") 
-    tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
-  except:
-    raise EnvironmentError("Failed to start TypeScript compiler, verify npx and tsc are installed.")
+  process_single_css_file("src/index.css", overwrite=False, output_path="dist/index.min.css")
 
   if watch:
+    try:
+      # start the ts compiler in the bg with no ouput
+      FNULL = open(os.devnull, 'w')
+      print("\nStarting TypeScript compiler...") 
+      tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+    except:
+      raise EnvironmentError("Failed to start TypeScript compiler, verify npx and tsc are installed.")
+
     print("Watching for css and component changes...")
-    cssWatcher = FileWatcher("assets/index.css")
+    cssWatcher = FileWatcher("src/index.css")
   
   if directory == "":
     prepare("Serving from root directory...")
   else: 
     prepare(f"Serving from {directory} directory...")
 
-  run(HTTPServer, NoExtensionHandler, tsc)
+  if watch:
+    run(HTTPServer, NoExtensionHandler, tsc)
+  else:
+    run(HTTPServer, NoExtensionHandler)
 
 # ============ #
 # *** MAIN *** #
