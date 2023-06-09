@@ -36,7 +36,10 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
     print("\n> unmodified path:", self.path)
-    self.path = directory + self.path.replace("/milkyway-js/", "/")
+    if redirect:
+      self.path = directory + self.path.replace(redirect, "/")
+    else:
+      self.path = directory + self.path
     print("> with directory:", self.path)
     
     home_paths = ["/", "/docs/"]
@@ -70,10 +73,11 @@ class FileWatcher(object):
 # =============== #
 # *** RUNNING *** #
 
-def serve(rootDirectory = "", watchChanges = False):
-  global directory, watch, headerWatcher, cssWatcher
+def serve(rootDirectory = "", watchChanges = False, pagesRedirect = ""):
+  global directory, watch, redirect, cssWatcher
   directory = rootDirectory
   watch = watchChanges
+  redirect = pagesRedirect
 
   compile(doOutput=False)
   process_single_css_file("assets/index.css", overwrite=False, output_path="dist/index.min.css")

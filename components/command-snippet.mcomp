@@ -1,1 +1,1 @@
-<span class="command-snippet" tabindex="0">manage.py runserver --watch</span>
+<span class="command-snippet" tabindex="0">{{ text }}</span>

@@ -1,0 +1,19 @@
+{
+  // Used for Github Pages, tells the local development server how to
+  // route pages with this in the path. For example, the path "/" will 
+  // always serve index.html, but the path, "/milkyway-js/about" should
+  // serve about.html, not ./milkyway-js/about.html (for none use "").
+  "pagesRedirect": "/milkyway-js/",
+
+  // Whether the TypeScript compiler should be invoked when the milkway
+  // transpiler is being invoked.
+  "useTypeScript": true,
+
+  // Whether the project's JavaScript files should be minified or not.
+  // Not compatible with projects not using TypeScript.
+  "minifyJavaScript": true,
+
+  // Whether the HTML and CSS should be minified, respectively.
+  "minifyHTML": false,
+  "minifyCSS": true
+}

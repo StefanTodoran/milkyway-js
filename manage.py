@@ -1,5 +1,7 @@
 import sys
 import os
+import re
+import json
 from lib.server import serve
 
 intro = r"""
@@ -12,6 +14,28 @@ intro = r"""
             - Workflow Management Script -            
 """
 
+# ======== #
+# SETTINGS #
+
+def readJSONWithComments(path: str):
+  with open(path, "r") as file:
+    content = file.read()
+    
+    content = re.sub(r"\/\/.*", "", content) # Remove single-line comments
+    content = re.sub(r"\/\*.*?\*\/", "", content, flags=re.DOTALL) # Remove multi-line comments
+    
+    data = json.loads(content)  
+  return data
+
+def getSettingsData(path: str):
+  if not os.path.exists(path):
+    raise FileNotFoundError(path + " does not exist!")
+
+  return readJSONWithComments(path)
+
+# ======== #
+#   MAIN   #
+
 def usage(message: str = ""):
   if message != "":
     message += " "
@@ -21,6 +45,8 @@ def usage(message: str = ""):
   print("python serve.py build\n")
 
 def main():
+  settings = getSettingsData("milkyconfig.json")
+
   if len(sys.argv) == 1:
     usage("No command provided!")
 
@@ -28,9 +54,11 @@ def main():
     raise NotImplementedError("The build command is not yet implemented!")
 
   elif sys.argv[1] == "runserver":
+    redirect = settings["pagesRedirect"]
+
     if len(sys.argv) == 2:
       print(intro)
-      serve()
+      serve(pagesRedirect=redirect)
     
     elif len(sys.argv) == 3:
       dir_flags = ["--docs", "-d"]
@@ -39,12 +67,12 @@ def main():
       if sys.argv[2] in dir_flags:
         os.system('cls' if os.name=='nt' else 'clear')
         print(intro)
-        serve(rootDirectory="/docs")
+        serve(pagesRedirect=redirect, rootDirectory="/docs")
 
       elif sys.argv[2] in watch_flags:
         os.system('cls' if os.name=='nt' else 'clear')
         print(intro)
-        serve(watchChanges=True)
+        serve(pagesRedirect=redirect, watchChanges=True)
       
       else:
         print(f"Invalid flag provided. Expected one of {str(dir_flags + watch_flags)}, got '{sys.argv[2]}'")

@@ -16,7 +16,6 @@ def readFileData(path: str):
 
   with open(path, "r", encoding="utf8") as file:
     lines = file.readlines()
-    file.close()
 
   return lines
 
@@ -26,6 +25,11 @@ def writeDataToFile(path: str, lines: list):
   with open(path, "w", encoding="utf8") as file:
     file.writelines(lines)
 
+def getSavePath(path):
+  filename = os.path.basename(path)
+  base, extension = os.path.splitext(filename)
+  return base + ".html"
+
 # =============== #
 # DATA EXTRACTION #
 
@@ -34,15 +38,6 @@ def locateAllPages(root: str = ""):
   pages = sorted(dir.glob("*.mhtml"))
   output(f"Located {len(pages)} site pages...")
   return pages
-
-def extractComponentName(line):
-  pattern = r"<!--\s*%MLKY\s*([A-Za-z\-]+)\s*-->"
-  match = re.search(pattern, line)
-  if match:
-      component_name = match.group(1)
-      return component_name.strip()
-  else:
-      return None
 
 def extractComponentData(line: str):
   pattern = r"<!--\s*%MLKY\s+(\w+(?:-\w+)*)\s*([a-zA-Z]+=\"[^\"]*\s*\"(?:\s+[a-zA-Z]+=\"[^\"]*\s*\")*)*\s*-->"
@@ -62,15 +57,37 @@ def extractComponentData(line: str):
 
   return {"name": componentName, "props": props}
 
-def splitLineOnComponent(line, componentName):
-  pattern = r"<!--\s*%MLKY\s*" + re.escape(componentName) + r"\s*-->"
+def splitLineOnComponent(line):
+  pattern = r"<!--\s*%MLKY.*?\s*-->"
   parts = re.split(pattern, line)
   return parts
 
-def getSavePath(path):
-  filename = os.path.basename(path)
-  base, extension = os.path.splitext(filename)
-  return base + ".html"
+def extractPropName(line):
+  propName = re.findall(r"{{\s*([A-Za-z]+)\s*}}", line)
+  return propName
+
+def splitLineOnProp(line, prop):
+  pattern = r"{{\s*" + prop + r"\s*}}"
+  parts = re.split(pattern, line)
+  return parts
+  # startTag = re.sub(r"{{\s*" + prop + r"\s*}}", "", line)
+  # endTag = line.replace(startTag, "", 1)
+  # return startTag, endTag
+
+# =============== #
+# DATA POPULATING #
+
+def populateComponentData(lines: list, props: dict):
+  index = 0
+  for line in lines:
+    for prop, value in props.items():
+      split = splitLineOnProp(line, prop)
+      
+      if len(split) == 2:
+        lines[index] = split[0] + value + split[1]
+    
+    index += 1
+  return lines
 
 # ======== #
 #   MAIN   #
@@ -82,12 +99,12 @@ def compile(doOutput = True):
 
   pages = locateAllPages("./pages/")
   for page in pages:
+    
     pageLines = readFileData(page)
     writeLines = copy.copy(pageLines)
-
     index = 0
+
     for line in pageLines:
-      # component = extractComponentName(line)
       component = extractComponentData(line)
     
       if component:
@@ -99,20 +116,20 @@ def compile(doOutput = True):
           raise NameError(path + " does not exist!")
 
         # Note that writeLines.pop(index) == line, it's the same line!
-        splitLine = splitLineOnComponent(writeLines.pop(index), name)
+        splitLine = splitLineOnComponent(writeLines.pop(index))
         componentLines = readFileData(path)
-
-        print(component["props"])
+        componentLines = populateComponentData(componentLines, component["props"])
 
         # We do this to essentially "insert" the component
         # between whatever tags lie on either side of the indicator.
         componentLines[0] = splitLine[0] + componentLines[0]
         componentLines[-1] = componentLines[-1] + splitLine[1]
 
-        if componentLines[-1] != "\n":
-          componentLines[-1] += "\n"
+        # if componentLines[-1] != "\n":
+        #   componentLines[-1] += "\n"
 
         writeLines[index:index] = componentLines
+        index += len(componentLines) - 1
 
       index += 1
 
