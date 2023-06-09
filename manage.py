@@ -56,10 +56,20 @@ def main():
 
   elif sys.argv[1] == "runserver":
     redirect = settings["pagesRedirect"]
+    useTS = settings["useTypeScript"]
+    minifyJS = settings["minifyJavaScript"]
+    minifyCSS = settings["minifyCSS"]
+    minifyHTML = settings["minifyHTML"]
 
     if len(sys.argv) == 2:
       print(intro)
-      serve(pagesRedirect=redirect)
+      serve(
+        useTS=useTS, 
+        minifyJS=minifyJS, 
+        minifyCSS=minifyCSS, 
+        minifyHTML=minifyHTML,
+        pagesRedirect=redirect,
+      )
     
     elif len(sys.argv) == 3:
       dir_flags = ["--docs", "-d"]
@@ -68,12 +78,26 @@ def main():
       if sys.argv[2] in dir_flags:
         os.system('cls' if os.name=='nt' else 'clear')
         print(intro)
-        serve(pagesRedirect=redirect, rootDirectory="/docs")
+        serve(
+          rootDirectory="/docs",
+          useTS=useTS,
+          minifyJS=minifyJS,
+          minifyCSS=minifyCSS, 
+          minifyHTML=minifyHTML,
+          pagesRedirect=redirect,
+        )
 
-      elif sys.argv[2] in watch_flags:
+      if sys.argv[2] in watch_flags:
         os.system('cls' if os.name=='nt' else 'clear')
         print(intro)
-        serve(pagesRedirect=redirect, watchChanges=True)
+        serve(
+          watchComponents=True,
+          useTS=useTS,
+          minifyJS=minifyJS,
+          minifyCSS=minifyCSS, 
+          minifyHTML=minifyHTML,
+          pagesRedirect=redirect,
+        )
       
       else:
         print(f"Invalid flag provided. Expected one of {str(dir_flags + watch_flags)}, got '{sys.argv[2]}'")

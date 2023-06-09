@@ -86,9 +86,6 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 
 ## TODO
 
-* Finish build script for manage.py
-* Add configuration file, read by manage.py
-  * Should include option to configure root directory
-* Make components able to be inline with other tags
+* Finishing touches build script for manage.py
+* More settings in configuration file, finish implementing existing
 * Add more basic template HTML, CSS and TS
-* Investiage ways of having basic component props?

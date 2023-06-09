@@ -1,5 +1,6 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_css_file
+from css_html_js_minify import process_single_js_file
 from .compiler import compile
 import subprocess
 import sys
@@ -30,7 +31,7 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
   try:
     httpd.serve_forever()
   except:
-    if watch:
+    if bg_proc:
       print("Recieved keyboard interrupt, killing TypeScript compiler and exiting...")
       bg_proc.kill()
     print("")
@@ -50,9 +51,17 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
       self.path += ".html"
       print("> extension added:", self.path)
 
-    if watch: compile(doOutput=False)
-    if watch and cssWatcher.check():
-      print("> css modified, minifying stylesheet...")
+    if watch:
+      compile(doOutput=True)
+      # TODO: minify HTML if minify is enabled
+    
+    if jsWatcher and jsWatcher.check():
+      print("> JavaScript modified, minifying...")
+      # process_single_js_file("dist/index.css", overwrite=False, output_path="dist/index.min.css")
+      # TODO: find all JS files in dist, then minify each of them
+    
+    if cssWatcher and cssWatcher.check():
+      print("> CSS modified, minifying stylesheet...")
       process_single_css_file("src/index.css", overwrite=False, output_path="dist/index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
@@ -75,16 +84,22 @@ class FileWatcher(object):
 # =============== #
 # *** RUNNING *** #
 
-def serve(rootDirectory = "", watchChanges = False, pagesRedirect = ""):
-  global directory, watch, redirect, cssWatcher
+def serve(
+      watchComponents = False,
+      rootDirectory = "", 
+      useTS = False, 
+      minifyJS = False, 
+      minifyCSS = False, 
+      minifyHTML = False, 
+      pagesRedirect = ""
+    ):
+  global directory, redirect, watch, jsWatcher, cssWatcher, doMinifyHTML
   directory = rootDirectory
-  watch = watchChanges
   redirect = pagesRedirect
-
+  watch = watchComponents
   compile(doOutput=False)
-  process_single_css_file("src/index.css", overwrite=False, output_path="dist/index.min.css")
 
-  if watch:
+  if useTS:
     try:
       # start the ts compiler in the bg with no ouput
       FNULL = open(os.devnull, 'w')
@@ -93,15 +108,26 @@ def serve(rootDirectory = "", watchChanges = False, pagesRedirect = ""):
     except:
       raise EnvironmentError("Failed to start TypeScript compiler, verify npx and tsc are installed.")
 
-    print("Watching for css and component changes...")
+  jsWatcher = None
+  if minifyJS:
+    print("Watching for changes and minifying transpiled JavaScript...")
+    jsWatcher = FileWatcher("src/index.css")
+  
+  cssWatcher = None
+  if minifyCSS:
+    print("Watching for and minifying CSS changes...")
     cssWatcher = FileWatcher("src/index.css")
+  
+  doMinifyHTML = minifyHTML
+  if minifyHTML:
+    print("Watching for and minifying HTML changes...")
   
   if directory == "":
     prepare("Serving from root directory...")
   else: 
     prepare(f"Serving from {directory} directory...")
 
-  if watch:
+  if useTS:
     run(HTTPServer, NoExtensionHandler, tsc)
   else:
     run(HTTPServer, NoExtensionHandler)
