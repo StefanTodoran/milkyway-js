@@ -30,14 +30,14 @@ def getSavePath(path):
   base, extension = os.path.splitext(filename)
   return base + ".html"
 
-# =============== #
-# DATA EXTRACTION #
-
 def locateAllPages(root: str = ""):
   dir = Path(root)
   pages = sorted(dir.glob("*.mhtml"))
   output(f"Located {len(pages)} site pages...")
   return pages
+
+# =============== #
+# DATA EXTRACTION #
 
 def extractComponentData(line: str):
   pattern = r"<!--\s*%MLKY\s+(\w+(?:-\w+)*)\s*([a-zA-Z]+=\"[^\"]*\s*\"(?:\s+[a-zA-Z]+=\"[^\"]*\s*\")*)*\s*-->"
@@ -70,9 +70,6 @@ def splitLineOnProp(line, prop):
   pattern = r"{{\s*" + prop + r"\s*}}"
   parts = re.split(pattern, line)
   return parts
-  # startTag = re.sub(r"{{\s*" + prop + r"\s*}}", "", line)
-  # endTag = line.replace(startTag, "", 1)
-  # return startTag, endTag
 
 # =============== #
 # DATA POPULATING #
@@ -135,7 +132,7 @@ def compile(doOutput = True):
 
     writeDataToFile(getSavePath(page), writeLines)
 
-  print(f"Compiled all {len(pages)} HTML files found\n")
+  output(f"Compiled all {len(pages)} HTML files found\n")
 
 if __name__ == "__main__":
   compile()

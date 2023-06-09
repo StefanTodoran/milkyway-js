@@ -3,6 +3,7 @@ import os
 import re
 import json
 from lib.server import serve
+from lib.build import migrate
 
 intro = r"""
         _ _ _                               __  __    
@@ -51,7 +52,7 @@ def main():
     usage("No command provided!")
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
-    raise NotImplementedError("The build command is not yet implemented!")
+    migrate()
 
   elif sys.argv[1] == "runserver":
     redirect = settings["pagesRedirect"]
