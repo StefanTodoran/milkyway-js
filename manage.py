@@ -37,6 +37,10 @@ def getSettingsData(path: str):
 # ======== #
 #   MAIN   #
 
+def start():
+  os.system('cls' if os.name=='nt' else 'clear')
+  print(intro)
+
 def usage(message: str = ""):
   if message != "":
     message += " "
@@ -52,6 +56,7 @@ def main():
     usage("No command provided!")
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
+    start()
     migrate()
 
   elif sys.argv[1] == "runserver":
@@ -62,7 +67,7 @@ def main():
     minifyHTML = settings["minifyHTML"]
 
     if len(sys.argv) == 2:
-      print(intro)
+      start()
       serve(
         useTS=useTS, 
         minifyJS=minifyJS, 
@@ -76,8 +81,7 @@ def main():
       watch_flags = ["--watch", "-w"]
 
       if sys.argv[2] in dir_flags:
-        os.system('cls' if os.name=='nt' else 'clear')
-        print(intro)
+        start()
         serve(
           rootDirectory="/docs",
           useTS=useTS,
@@ -88,8 +92,7 @@ def main():
         )
 
       elif sys.argv[2] in watch_flags:
-        os.system('cls' if os.name=='nt' else 'clear')
-        print(intro)
+        start()
         serve(
           watchComponents=True,
           useTS=useTS,
