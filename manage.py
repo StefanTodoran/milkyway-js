@@ -87,7 +87,7 @@ def main():
           pagesRedirect=redirect,
         )
 
-      if sys.argv[2] in watch_flags:
+      elif sys.argv[2] in watch_flags:
         os.system('cls' if os.name=='nt' else 'clear')
         print(intro)
         serve(

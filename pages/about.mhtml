@@ -23,7 +23,7 @@
     <h1 class="animated-item pop-in"><span class="magic-text">Milkyway</span>JS</h1>
 
     <p>Run <!-- %MLKY COMMAND-SNIPPET text="manage.py build" --> to build for production!</p>
-    <p>Click <a class="magic-text" href="/">this link</a> to go back.</p>
+    <p>Click <a class="magic-text" href="/milkyway-js/">this link</a> to go back.</p>
   </section>
 
   <!-- %MLKY FOOTER -->
