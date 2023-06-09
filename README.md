@@ -4,7 +4,7 @@
 This directory contains the original CSS file and all other assets, such as image, svg, or video files.
 
 `components`<br>
-This directory contains all component files, marked by the `.mcomp` extension. These should contain HTML code, and can be inserted into the HTML by using the `<!-- %MILKY {NAME} -->` indicator, where {NAME} is replaced by the component's name, which should match the name of the component file.
+This directory contains all component files, marked by the `.mcomp` extension. These should contain HTML code, and can be inserted into the HTML by using the `<!-- %MLKY {NAME} -->` indicator, where {NAME} is replaced by the component's name, which should match the name of the component file.
 
 `dist`<br>
 There should be no reason to make changes to this directory, as it contains the minifed CSS and compiled JavaScript.

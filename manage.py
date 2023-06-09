@@ -29,6 +29,7 @@ def main():
 
   elif sys.argv[1] == "runserver":
     if len(sys.argv) == 2:
+      print(intro)
       serve()
     
     elif len(sys.argv) == 3:

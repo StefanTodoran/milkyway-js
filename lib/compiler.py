@@ -36,18 +36,41 @@ def locateAllPages(root: str = ""):
   return pages
 
 def extractComponentName(line):
-    pattern = r"<!--\s*%MILKY\s*([A-Za-z\-]+)\s*-->"
-    match = re.search(pattern, line)
-    if match:
-        component_name = match.group(1)
-        return component_name.strip()
-    else:
-        return None
+  pattern = r"<!--\s*%MLKY\s*([A-Za-z\-]+)\s*-->"
+  match = re.search(pattern, line)
+  if match:
+      component_name = match.group(1)
+      return component_name.strip()
+  else:
+      return None
+
+def extractComponentData(line: str):
+  pattern = r"<!--\s*%MLKY\s+(\w+(?:-\w+)*)\s*([a-zA-Z]+=\"[^\"]*\s*\"(?:\s+[a-zA-Z]+=\"[^\"]*\s*\")*)*\s*-->"
+  match = re.search(pattern, line)
+
+  if not match:
+    return None
+  
+  componentName = match.group(1)
+  rawProps = match.group(2)
+  props = {}
+
+  if rawProps:
+    propPattern = r"([a-zA-Z]+)=\"([^\"]*)\""
+    propMatches = re.findall(propPattern, rawProps)
+    props = {name: value for name, value in propMatches}
+
+  return {"name": componentName, "props": props}
+
+def splitLineOnComponent(line, componentName):
+  pattern = r"<!--\s*%MLKY\s*" + re.escape(componentName) + r"\s*-->"
+  parts = re.split(pattern, line)
+  return parts
 
 def getSavePath(path):
-    filename = os.path.basename(path)
-    base, extension = os.path.splitext(filename)
-    return base + ".html"
+  filename = os.path.basename(path)
+  base, extension = os.path.splitext(filename)
+  return base + ".html"
 
 # ======== #
 #   MAIN   #
@@ -64,19 +87,31 @@ def compile(doOutput = True):
 
     index = 0
     for line in pageLines:
-      component = extractComponentName(line)
+      # component = extractComponentName(line)
+      component = extractComponentData(line)
     
       if component:
-        output(f"Found '{component}' component indicator, searching for file...")
-        path = "./components/" + component.lower() + ".mcomp"
+        name = component["name"]
+        output(f"Found '{name}' component indicator, searching for file...")
+        
+        path = "./components/" + name.lower() + ".mcomp"
         if not os.path.exists(path):
           raise NameError(path + " does not exist!")
-        
+
+        # Note that writeLines.pop(index) == line, it's the same line!
+        splitLine = splitLineOnComponent(writeLines.pop(index), name)
         componentLines = readFileData(path)
+
+        print(component["props"])
+
+        # We do this to essentially "insert" the component
+        # between whatever tags lie on either side of the indicator.
+        componentLines[0] = splitLine[0] + componentLines[0]
+        componentLines[-1] = componentLines[-1] + splitLine[1]
+
         if componentLines[-1] != "\n":
           componentLines[-1] += "\n"
 
-        writeLines.pop(index)
         writeLines[index:index] = componentLines
 
       index += 1

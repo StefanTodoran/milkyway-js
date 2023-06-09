@@ -23,10 +23,11 @@
     <h1 class="animated-item pop-in"><span class="magic-text">Milkyway</span>JS</h1>
 
     <p>Run <span class="command-snippet" tabindex="0">manage.py runserver --watch</span> to get started!</p>
+    <p>Run <!-- %MLKY COMMAND-SNIPPET text="manage.py runserver --watch" test="abc" --> to get started!</p>
     <p>Click <a class="magic-text" href="/milkyway-js/about">this link</a> to check out another page.</p>
   </section>
 
-  <!-- %MILKY FOOTER -->
+  <!-- %MLKY FOOTER -->
 </body>
 
 </html>
