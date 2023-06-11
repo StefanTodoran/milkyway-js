@@ -1,7 +1,9 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from css_html_js_minify import process_single_html_file
 from css_html_js_minify import process_single_css_file
 from css_html_js_minify import process_single_js_file
 from .compiler import compile
+from .build import locateAll
 import subprocess
 import sys
 import os
@@ -38,31 +40,37 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
 
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
-    print("\n> unmodified path:", self.path)
+    print("\n> Unmodified path:", self.path)
     if redirect:
       self.path = directory + self.path.replace(redirect, "/")
     else:
       self.path = directory + self.path
-    print("> with directory:", self.path)
+    print("> With directory and redirect:", self.path)
     
     home_paths = ["/", "/docs/"]
     # The exclusion of paths with a period excludes image, js and other file types
     if self.path not in home_paths and not "." in self.path:
       self.path += ".html"
-      print("> extension added:", self.path)
+      print("> Extension added:", self.path)
 
-    if watch:
-      compile(doOutput=True)
-      # TODO: minify HTML if minify is enabled
+    if self.path.endswith(".html") or self.path in home_paths:
+      if watch:
+        compile(doOutput=True)
+
+      if doMinifyHTML:
+        pages = locateAll("./", "*.html")
+        for page in pages:
+          process_single_html_file(page, overwrite=True, output_path=page)
     
-    if jsWatcher and jsWatcher.check():
+    if jsWatcher and jsWatcher.check() and self.path.endswith(".js"):
       print("> JavaScript modified, minifying...")
-      # process_single_js_file("dist/index.css", overwrite=False, output_path="dist/index.min.css")
-      # TODO: find all JS files in dist, then minify each of them
+      scripts = locateAll("./", "*.js")
+      for script in scripts:
+        process_single_js_file(script, overwrite=False)
     
-    if cssWatcher and cssWatcher.check():
+    if cssWatcher and cssWatcher.check() and self.path.endswith(".js"):
       print("> CSS modified, minifying stylesheet...")
-      process_single_css_file("src/index.css", overwrite=False, output_path="dist/index.min.css")
+      process_single_css_file("src/index.css", overwrite=False, output_path=outputLoc + "index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
 
@@ -91,12 +99,14 @@ def serve(
       minifyJS = False, 
       minifyCSS = False, 
       minifyHTML = False, 
-      pagesRedirect = ""
+      pagesRedirect = "",
+      outDir = "./dist/",
     ):
-  global directory, redirect, watch, jsWatcher, cssWatcher, doMinifyHTML
+  global directory, redirect, watch, outputLoc, jsWatcher, cssWatcher, doMinifyHTML
   directory = rootDirectory
   redirect = pagesRedirect
   watch = watchComponents
+  outputLoc = outDir
   compile(doOutput=False)
 
   if useTS:

@@ -50,17 +50,18 @@ def usage(message: str = ""):
   print("python serve.py build\n")
 
 def main():
-  settings = getSettingsData("milkyconfig.json")
+  settings = getSettingsData("milkyconfig.jsonc")
 
   if len(sys.argv) == 1:
     usage("No command provided!")
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
     start()
-    migrate()
+    migrate(outDir=outDir)
 
   elif sys.argv[1] == "runserver":
     redirect = settings["pagesRedirect"]
+    outDir = settings["outDir"]
     useTS = settings["useTypeScript"]
     minifyJS = settings["minifyJavaScript"]
     minifyCSS = settings["minifyCSS"]
@@ -84,17 +85,18 @@ def main():
         start()
         serve(
           rootDirectory="/docs",
-          useTS=useTS,
-          minifyJS=minifyJS,
-          minifyCSS=minifyCSS, 
-          minifyHTML=minifyHTML,
           pagesRedirect=redirect,
+          useTS=False,
+          minifyJS=False,
+          minifyCSS=False, 
+          minifyHTML=False,
         )
 
       elif sys.argv[2] in watch_flags:
         start()
         serve(
           watchComponents=True,
+          outDir=outDir,
           useTS=useTS,
           minifyJS=minifyJS,
           minifyCSS=minifyCSS, 

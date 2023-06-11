@@ -23,7 +23,7 @@ def migrateAll(root: str, dest: str, dir: str, glob: str):
 # ======== #
 #   MAIN   #
 
-def migrate():
+def migrate(outDir: str = "dist/"):
   print("\nBuilding site to production...")
 
   root = "./"
@@ -35,8 +35,8 @@ def migrate():
     print("done.\n")
   
   migrateAll(root, dest, "", "*.html")
-  migrateAll(root, dest, "dist/", "*.js")
-  migrateAll(root, dest, "dist/", "*.min.css")
+  migrateAll(root, dest, outDir, "*.js")
+  migrateAll(root, dest, outDir, "*.min.css")
 
   print("Recursively copying all assets to produciton...", end=" ")
   shutil.copytree(root + "assets/", dest + "assets/")

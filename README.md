@@ -41,7 +41,14 @@ As you can see it is very barebones; this is not React. We are not looking to "b
 
 # Development Instructions
 
-To get started, clone this repository or click "use this template".
+To get started, clone this repository or click "use this template". Then, run the following commands:
+
+```shell
+npm i
+pip install git+https://github.com/StefanTodoran/web-minify.git@master
+```
+
+The web-minify package is a fork of the [css_html_js_minify](https://github.com/juancarlospaco/css-html-js-minify) package. Unfortunately as of the time of writing the css_html_js_minify package hasn't seen an update since 2018, over 5 years ago. It contains a number of bugs which the web-minify package addresses.
 
 ## Project Overview
 

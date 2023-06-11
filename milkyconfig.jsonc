@@ -15,5 +15,9 @@
 
   // Whether the HTML and CSS should be minified, respectively.
   "minifyHTML": false,
-  "minifyCSS": true
+  "minifyCSS": true,
+
+  // Directory where minified CSS and JS files should go. This must
+  // match the 'outDir' specified in tsconfig.json!
+  "outDir": "dist"
 }

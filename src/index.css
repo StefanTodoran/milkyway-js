@@ -94,7 +94,7 @@ p {
   align-items: center;
   margin-top: 10vh;
   min-height: 60vh;
-  padding: 0 5%;
+  padding: 0 10%;
 }
 
 .hover-tooltip {
@@ -287,6 +287,15 @@ p {
 @media screen and (max-width:767px) {
   .footer-link {
     font-size: 10px;
+  }
+
+  .main-content {
+    margin-top: 5vh;
+    padding: 0 5%;
+  }
+
+  p {
+    font-size: 16px;
   }
 }
 

@@ -9,9 +9,9 @@ var seedRandom = mulberry32(9);
 
 function main() {
   addAnimationObserver();
+  initializeStarCanvas();
   initializeMagicText(3, 1000);
   initializeCommandSnippets();
-  initializeStarCanvas();
 
   // The scroll top button should work even without js enabled so it uses
   // an anchor, however that appends an ugly has to the url so this prevents that.
@@ -103,10 +103,10 @@ interface star {
 function initializeStarCanvas() {
   const canvas = document.getElementById("star-canvas") as HTMLCanvasElement;
   const context = canvas.getContext("2d");
-  
+
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  
+
   let numStars = Math.round((window.innerWidth + window.innerHeight) / 10);
   let stars = createRandomStars(numStars, canvas.width, canvas.height);
   drawAllStars(context, stars);
@@ -127,7 +127,7 @@ function initializeStarCanvas() {
     drawAllStars(context, stars);
   }, 1);
 
-  // TODO: use this instead of set interval?
+  // TODO: use this instead of set interval??
   // requestAnimationFrame(function anim(t) {
   //   if (w !== innerWidth) w = canvas.width = innerWidth;
   //   if (h !== innerHeight) h = canvas.height = innerHeight;
@@ -247,7 +247,7 @@ function addOpacityToHexColor(opacity: number, hexColor: string) {
   if (hexColor.length !== 7) throw new TypeError("hexColor must be a 6-digit string with the pound sign!");
 
   // Convert opacity to a two-digit hexadecimal value
-  var opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
+  const opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
   return hexColor + opacityHex;
 }
 
