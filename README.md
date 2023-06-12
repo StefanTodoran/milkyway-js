@@ -96,3 +96,6 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 * Finishing touches build script for manage.py
 * More settings in configuration file, finish implementing existing
 * Add more basic template HTML, CSS and TS
+* Stress test compiler code for both components and if clauses
+* Modify compiler to allow multiple components per line and multiple if clauses per line?
+* Modify compiler to allow multi-line if clauses?

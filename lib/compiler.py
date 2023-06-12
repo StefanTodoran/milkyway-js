@@ -40,7 +40,7 @@ def locateAllPages(root: str = ""):
 # DATA EXTRACTION #
 
 def extractComponentData(line: str):
-  pattern = r"<!--\s*%MLKY\s+(\w+(?:-\w+)*)\s*([a-zA-Z]+=\"[^\"]*\s*\"(?:\s+[a-zA-Z]+=\"[^\"]*\s*\")*)*\s*-->"
+  pattern = r"<!--\s*%MLKY\s+(\w+(?:-\w+)*)\s+([a-zA-Z]+=\"[^\"]*\s*\"(?:\s+[a-zA-Z]+=\"[^\"]*\s*\")*)*\s*-->"
   match = re.search(pattern, line)
 
   if not match:
@@ -57,34 +57,135 @@ def extractComponentData(line: str):
 
   return {"name": componentName, "props": props}
 
+def extractPropName(line):
+  propName = re.findall(r"{{\s*([A-Za-z]+)\s*}}", line)
+  return propName
+
+def extractIfClause(string):
+  pattern = r"\{\[\s*%\s*if\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  
+  match = re.search(pattern, string)
+  if match:
+    return {
+      "propName": match.group("prop"), 
+      "inverted": False, 
+      "start": match.start(),
+      "end": match.end()
+    }
+  
+  invertedMatch = re.search(invertedPattern, string)
+  if invertedMatch:
+    return {
+      "propName": invertedMatch.group("prop"), 
+      "inverted": True,
+      "start": invertedMatch.start(),
+      "end": invertedMatch.end()
+    }
+    
+  return None
+
+# =============== #
+# DATA POPULATING #
+
 def splitLineOnComponent(line):
   pattern = r"<!--\s*%MLKY.*?\s*-->"
   parts = re.split(pattern, line)
   return parts
-
-def extractPropName(line):
-  propName = re.findall(r"{{\s*([A-Za-z]+)\s*}}", line)
-  return propName
 
 def splitLineOnProp(line, prop):
   pattern = r"{{\s*" + prop + r"\s*}}"
   parts = re.split(pattern, line)
   return parts
 
-# =============== #
-# DATA POPULATING #
+def removeProp(string):
+  pattern = r"\{\{\s*[a-zA-Z]+\s*\}\}"
+  return re.sub(pattern, "", string)
+
+def removeSubstring(string, start, end):
+  return string[:start] + string[end+1:]
+
+# Removes the section of a string between an
+# if and its corresponding end if.
+def removeIfSection(line, clause):
+  start = clause["start"]
+  end = line.find("{[ %endif ]}") + len("{[ %endif ]}") - 1
+  return removeSubstring(line, start, end)
+
+# Removes any if and any end if declarations from
+# a string, leaves the rest of the string unchanged.
+def removeIfClause(line, clause):
+  if not clause: return
+
+  start = clause["start"]
+  end = clause["end"]
+  line = removeSubstring(line, start, end)
+  
+  start = line.find("{[ %endif ]}")
+  end = start + len("{[ %endif ]}") - 1
+  return removeSubstring(line, start, end)
 
 def populateComponentData(lines: list, props: dict):
   index = 0
   for line in lines:
-    for prop, value in props.items():
-      split = splitLineOnProp(line, prop)
+    # clause = extractIfClause(line)
+    # targetPropFound = False
+    
+    # for prop, value in props.items():
+    #   if clause and clause["propName"] == prop:
+    #     targetPropFound = True
       
+    #     if clause["inverted"]:
+    #       # If we have an if clause of the form {[ %if not prop ]}
+    #       lines[index] = removeIfSection(lines[index], clause)
+    
+    # if clause and not clause["inverted"] and not targetPropFound:
+    #   # If we have an if clause of the form {[ %if prop ]} and prop's value was not specified
+    #   lines[index] = removeIfSection(lines[index], clause)
+
+    for prop, value in props.items():
+      split = splitLineOnProp(lines[index], prop)
+        
       if len(split) == 2:
         lines[index] = split[0] + value + split[1]
-    
+
+    lines[index] = removeProp(lines[index]) # In case there was no prop value given
+    # lines[index] = removeIfClause(lines[index], clause)
     index += 1
   return lines
+
+# ======== #
+#   MISC   #
+
+def concatenateComponentLines(lines):
+  newLines = []
+  currentComponent = None
+
+  line: str
+  for line in lines:
+    componentStart = line.find("<!-- %MLKY")
+    componentEnd = line.find("-->")
+
+    if currentComponent:
+      currentComponent += " " + line.strip()
+
+      if componentStart != -1:
+        raise SyntaxError("Cannot declare a component inside another component!")
+      
+      if componentEnd != -1:
+        newLines.append(currentComponent)
+        currentComponent = None
+
+    else:
+      
+      if componentStart != -1 and componentEnd == -1:
+        currentComponent = line[componentStart:].strip()
+        newLines.append(line[:componentStart])
+
+      else: # Either no component or one line component
+        newLines.append(line)
+
+  return newLines
 
 # ======== #
 #   MAIN   #
@@ -98,6 +199,8 @@ def compile(doOutput = True):
   for page in pages:
     
     pageLines = readFileData(page)
+    pageLines = concatenateComponentLines(pageLines) # This way our logic for component substitution can assume one line components
+
     writeLines = copy.copy(pageLines)
     index = 0
 
@@ -121,9 +224,6 @@ def compile(doOutput = True):
         # between whatever tags lie on either side of the indicator.
         componentLines[0] = splitLine[0] + componentLines[0]
         componentLines[-1] = componentLines[-1] + splitLine[1]
-
-        # if componentLines[-1] != "\n":
-        #   componentLines[-1] += "\n"
 
         writeLines[index:index] = componentLines
         index += len(componentLines) - 1
