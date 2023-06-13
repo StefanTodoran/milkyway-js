@@ -17,12 +17,12 @@ Here is an example of how HTML components work:
 
 index.mhtml
 ```html
-<div><!-- %MLKY FOO bar="baz" --></div>
+<div><!-- %MLKY FOO text="bar" size="16px" --></div>
 ```
 
 foo.mcomp
 ```html
-<p style="font-size: 16px;">{{ bar }}</p>
+<p style="font-size: {{ size }};">{{ text }}</p>
 ```
 
 </details>
@@ -32,12 +32,41 @@ foo.mcomp
 
 index.html
 ```html
-<div><p style="font-size: 16px;">baz</p></div>
+<div><p style="font-size: 16px;">bar</p></div>
 ```
 
 </details><br>
 
-As you can see it is very barebones; this is not React. We are not looking to "be the next web paradigm". We just want to factor out our headers.
+As you can see it is very barebones; this is not React. We are not looking to "be the next web paradigm". We just want to factor out our headers. Here is a more complex example involving if clauses:
+
+<details>
+<summary>Sample Input</summary>
+
+index.mhtml
+```html
+<h1>An Image Icon</h1>
+<!-- %MLKY ICON src="image.png" caption="Hello World" size="25px" -->
+```
+
+icon.mcomp
+```html
+<img src="{{ src }}" style="width: {{ size }}; height: {{ size }};"/>
+{[ %if caption ]}<p>{{ caption }}</p>{[ %endif ]}
+```
+
+</details>
+
+<details>
+<summary>Sample Ouput</summary>
+
+index.html
+```html
+<h1>An Image Icon</h1>
+<img src="image.png" style="width: 25px; height: 25px;"/>
+<p>Hello World</p>
+```
+
+</details><br>
 
 # Development Instructions
 
@@ -97,5 +126,5 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 * More settings in configuration file, finish implementing existing
 * Add more basic template HTML, CSS and TS
 * Stress test compiler code for both components and if clauses
-* Modify compiler to allow multiple components per line and multiple if clauses per line?
+* Modify compiler to allow multiple components per line?
 * Modify compiler to allow multi-line if clauses?

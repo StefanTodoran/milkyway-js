@@ -114,11 +114,12 @@ def removeIfSection(line, clause):
 
 # Removes any if and any end if declarations from
 # a string, leaves the rest of the string unchanged.
-def removeIfClause(line, clause):
-  if not clause: return
+def removeIfClause(line):
+  clause = extractIfClause(line)
+  if not clause: return line
 
   start = clause["start"]
-  end = clause["end"]
+  end = clause["end"] - 1
   line = removeSubstring(line, start, end)
   
   start = line.find("{[ %endif ]}")
@@ -126,22 +127,8 @@ def removeIfClause(line, clause):
   return removeSubstring(line, start, end)
 
 def populateComponentData(lines: list, props: dict):
-  index = 0
-  for line in lines:
-    # clause = extractIfClause(line)
-    # targetPropFound = False
-    
-    # for prop, value in props.items():
-    #   if clause and clause["propName"] == prop:
-    #     targetPropFound = True
-      
-    #     if clause["inverted"]:
-    #       # If we have an if clause of the form {[ %if not prop ]}
-    #       lines[index] = removeIfSection(lines[index], clause)
-    
-    # if clause and not clause["inverted"] and not targetPropFound:
-    #   # If we have an if clause of the form {[ %if prop ]} and prop's value was not specified
-    #   lines[index] = removeIfSection(lines[index], clause)
+  for index in range(len(lines)):
+    handleIfClause(lines, index, props)
 
     for prop, value in props.items():
       split = splitLineOnProp(lines[index], prop)
@@ -150,9 +137,30 @@ def populateComponentData(lines: list, props: dict):
         lines[index] = split[0] + value + split[1]
 
     lines[index] = removeProp(lines[index]) # In case there was no prop value given
-    # lines[index] = removeIfClause(lines[index], clause)
-    index += 1
+
   return lines
+
+def handleIfClause(lines: list, index: int, props: dict):
+  clause = extractIfClause(lines[index])
+  targetPropFound = False
+    
+  for prop in props:
+    if clause and clause["propName"] == prop:
+      targetPropFound = True
+    
+      if clause["inverted"]:
+        # If we have an if clause of the form {[ %if not prop ]}
+        lines[index] = removeIfSection(lines[index], clause)
+  
+  if clause and not clause["inverted"] and not targetPropFound:
+    # If we have an if clause of the form {[ %if prop ]} and prop's value was not specified
+    lines[index] = removeIfSection(lines[index], clause)
+
+  lines[index] = removeIfClause(lines[index]) # In case if didn't trigger
+
+  # Check if there is another if on the line
+  clause = extractIfClause(lines[index])
+  if clause: handleIfClause(lines, index, props)
 
 # ======== #
 #   MISC   #
