@@ -6,10 +6,12 @@ function main() {
     initializeStarCanvas();
     initializeMagicText(3, 1000);
     initializeCommandSnippets();
-    const scrollButton = document.getElementById("scroll-top-button");
-    scrollButton.addEventListener("click", (evt) => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        evt.preventDefault();
+    const scrollButtons = document.querySelectorAll('[href*="scroll-to-top"]');
+    scrollButtons.forEach(scrollButton => {
+        scrollButton.addEventListener("click", (evt) => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            evt.preventDefault();
+        });
     });
 }
 function initializeMagicText(numStarsPerText, starAnimInterval) {

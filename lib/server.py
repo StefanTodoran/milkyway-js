@@ -62,15 +62,14 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
         for page in pages:
           process_single_html_file(page, overwrite=True, output_path=page)
     
-    if jsWatcher and jsWatcher.check() and self.path.endswith(".js"):
+    if jsWatcher and self.path.endswith(".js") and jsWatcher.check():
       print("> JavaScript modified, minifying...")
-      scripts = locateAll("./", "*.js")
-      for script in scripts:
-        process_single_js_file(script, overwrite=False)
+      unminifiedScript = "." + self.path.replace(".min", "")
+      process_single_js_file(unminifiedScript, overwrite=False)
     
-    if cssWatcher and cssWatcher.check() and self.path.endswith(".js"):
+    if cssWatcher and self.path.endswith(".css") and cssWatcher.check():
       print("> CSS modified, minifying stylesheet...")
-      process_single_css_file("src/index.css", overwrite=False, output_path=outputLoc + "index.min.css")
+      process_single_css_file("src/index.css", overwrite=False, output_path=outputLoc + "/" + "index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
 
@@ -82,7 +81,7 @@ class FileWatcher(object):
   def check(self):
     stamp = os.stat(self.filename).st_mtime
 
-    print(f"> checking {self.filename} modified time:", stamp)
+    print(f"> Checking {self.filename} modified time:", stamp, self._cached_stamp)
     if stamp != self._cached_stamp:
       self._cached_stamp = stamp
       return True # file changed
@@ -120,8 +119,9 @@ def serve(
 
   jsWatcher = None
   if minifyJS:
+    # TODO: this should watch all ts source files, use glob and modify FileWatcher
     print("Watching for changes and minifying transpiled JavaScript...")
-    jsWatcher = FileWatcher("src/index.css")
+    jsWatcher = FileWatcher("src/index.ts")
   
   cssWatcher = None
   if minifyCSS:

@@ -15,10 +15,12 @@ function main() {
 
   // The scroll top button should work even without js enabled so it uses
   // an anchor, however that appends an ugly has to the url so this prevents that.
-  const scrollButton = document.getElementById("scroll-top-button");
-  scrollButton.addEventListener("click", (evt) => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    evt.preventDefault();
+  const scrollButtons = document.querySelectorAll('[href*="scroll-to-top"]');
+  scrollButtons.forEach(scrollButton => {
+    scrollButton.addEventListener("click", (evt) => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      evt.preventDefault();
+    });
   });
 }
 
