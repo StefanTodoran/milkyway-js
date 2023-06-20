@@ -4,7 +4,7 @@ I have long found myself greatly frustrated by the shortcomings of vanilla HTML.
 
 It truly boggles the mind that in a bare HTML, CSS + JS project one cannot factor out the header into another file without incurring some kind of cost. While in the past I've solved this with a `<script>` tag which replaces itself, all existing solutions are simply unacceptable. One should be able to factor out snippets of HTML to their own files for use elsewhere without breaking the experience for non-JS users, without using an overkill library like React or Vue, and without needing to learn an entirely different preprocessor syntax like Pug.
 
-The goal of MilkywayJS, simply put, is to offer a development experience where you can utilize the benefits of components in your HTML, without any computational overhead. At runtime, your HTML code should look no different than it would had you done things the manual way.
+The goal of MilkywayJS, simply put, is to offer a development experience where you can utilize the benefits of components in your HTML, without any computational overhead. At runtime, the HTML code you ship to the browser should look no different than it would had you done things the manual way.
 
 # How it Works
 
@@ -82,10 +82,10 @@ The web-minify package is a fork of the [css_html_js_minify](https://github.com/
 ## Project Overview
 
 `assets`<br>
-This directory contains the original CSS file and all other assets, such as image, svg, or video files.
+This directory contains the all assets, such as image, svg, or video files.
 
 `components`<br>
-This directory contains all component files, marked by the `.mcomp` extension. These should contain HTML code, and can be inserted into the HTML by using the `<!-- %MLKY {NAME} -->` indicator, where {NAME} is replaced by the component's name, which should match the name of the component file.
+This directory contains all component files, marked by the `.mcomp` extension. These should contain HTML code, and can be inserted into the HTML by using the `<!-- %MLKY {NAME} -->` indicator, where {NAME} is replaced by the component's name, which should match the name of the some component file.
 
 `dist`<br>
 There should be no reason to make changes to this directory, as it contains the minifed CSS and compiled JavaScript.
@@ -97,7 +97,7 @@ Do not modify this directory, it is a python package with utils for the various 
 This folder contains the uncompiled HTML files of the project, marked by the `.mhtml` file extension. These files can contain component indicators, and will be "compiled" by having these indicators replaced with the appropriate component code.
 
 `src`<br>
-Last but not least, the src folder contains all TypeScript files for the project.
+Last but not least, the src folder contains all TypeScript files for the project and the CSS file.
 
 ## Making Changes
 
@@ -126,5 +126,6 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 * More settings in configuration file, finish implementing existing
 * Add more basic template HTML, CSS and TS
 * Stress test compiler code for both components and if clauses
-* Modify compiler to allow multiple components per line?
-* Modify compiler to allow multi-line if clauses?
+* Improve compiler by allowing boolean components to be written as `prop` rather than `prop=""`
+* Potentially modify compiler to allow multiple components per line?
+* Potentially modify compiler to allow multi-line if clauses?
