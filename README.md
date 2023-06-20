@@ -1,6 +1,6 @@
 <h1>What is Milkway? <img width="30px" height="30px" src="assets/logo.svg"/></h1>
 
-I have long found myself greatly frustrated by the shortcomings of vanilla HTML. One of the most basic concepts of computer science—modularity—is simply non-existant when working the the basic version of this language, a fact that is all the more painful when one recalls that HTML has existed longer than I have been alive.
+I have long found myself greatly frustrated by the shortcomings of vanilla HTML. One of the most basic concepts of computer science—modularity—is simply non-existant when working the the basic version of this language, a fact that is all the more painful when I recall that HTML has existed longer than I have been alive.
 
 It truly boggles the mind that in a bare HTML, CSS + JS project one cannot factor out the header into another file without incurring some kind of cost. While in the past I've solved this with a `<script>` tag which replaces itself, all existing solutions are simply unacceptable. One should be able to factor out snippets of HTML to their own files for use elsewhere without breaking the experience for non-JS users, without using an overkill library like React or Vue, and without needing to learn an entirely different preprocessor syntax like Pug.
 
