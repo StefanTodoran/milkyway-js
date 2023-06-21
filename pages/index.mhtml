@@ -26,12 +26,6 @@
     <p>Click <a class="magic-text" href="/milkyway-js/about">this link</a> to check out another page.</p>
   </section>
 
-  <!-- %MLKY TEST text="text" red="" -->
-  <p>-</p>
-  <!-- %MLKY TEST text="text" blue="" -->
-  <p>-</p>
-  <!-- %MLKY TEST text="text" red="" blue="" -->
-
   <!-- %MLKY FOOTER -->
 </body>
 

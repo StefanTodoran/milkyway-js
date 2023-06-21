@@ -84,30 +84,53 @@ def extractIfClause(string, number = 0):
   endPattern = r"{\[ %endif ]}"
   end = re.findall(endPattern, string)
 
-  pattern = r"\{\[\s*%\s*if\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  pattern = r"\{\[\s*%if\s+(not\s+)?([a-zA-Z]+)(?:=\"(.+?)\")?\s*\]\}"
   match = getNthMatch(pattern, string, number)
-
+  
   if match:
+    inverted = bool(match.group(1))
+    propName = match.group(2)
+    value = match.group(3) or True
+
     return {
-      "propName": match.group("prop"), 
-      "inverted": False, 
+      "propName": propName,
+      "value": value,
+      "inverted": inverted,
       "start": match.start(),
       "end": match.end(),
       "inline": len(end) > number
     }
-  
-  invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
-  invertedMatch = getNthMatch(invertedPattern, string, number)
-  if invertedMatch:
-    return {
-      "propName": invertedMatch.group("prop"), 
-      "inverted": True,
-      "start": invertedMatch.start(),
-      "end": invertedMatch.end(),
-      "inline": len(end) > number
-    }
     
   return None
+  
+  # IF CLAUSES NO VALUE
+  # endPattern = r"{\[ %endif ]}"
+  # end = re.findall(endPattern, string)
+
+  # pattern = r"\{\[\s*%\s*if\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  # match = getNthMatch(pattern, string, number)
+
+  # if match:
+  #   return {
+  #     "propName": match.group("prop"), 
+  #     "inverted": False, 
+  #     "start": match.start(),
+  #     "end": match.end(),
+  #     "inline": len(end) > number
+  #   }
+  
+  # invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  # invertedMatch = getNthMatch(invertedPattern, string, number)
+  # if invertedMatch:
+  #   return {
+  #     "propName": invertedMatch.group("prop"), 
+  #     "inverted": True,
+  #     "start": invertedMatch.start(),
+  #     "end": invertedMatch.end(),
+  #     "inline": len(end) > number
+  #   }
+    
+  # return None
 
 # =============== #
 # DATA POPULATING #
@@ -170,7 +193,9 @@ def removeIfClause(line):
 def isIfClauseSatisfied(clause: dict, props: dict):
   for prop in props:
     if clause["propName"] == prop:
-      return not clause["inverted"]
+      # print(clause["value"], props[prop])
+      if clause["value"] == True or clause["value"] == props[prop]:
+        return not clause["inverted"]
     
   return clause["inverted"]
 
