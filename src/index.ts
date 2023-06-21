@@ -156,7 +156,7 @@ function drawCircle(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
 }
 
 function createRandomStars(numStars: number, maxWidth: number, maxHeight: number) {
-  const stars: star[] = [];
+  const stars: star[] = []; // TODO: make star fade anim duration randomized
   for (let i = 0; i < numStars; i++) {
     const sizeA = randNum(0.1, 2, true);
     const sizeB = randNum(0.1, 2, true);

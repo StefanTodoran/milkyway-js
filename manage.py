@@ -30,7 +30,7 @@ def readJSONWithComments(path: str):
 
 def getSettingsData(path: str):
   if not os.path.exists(path):
-    raise FileNotFoundError(path + " does not exist!")
+    raise FileNotFoundError("(!) " + path + " does not exist!")
 
   return readJSONWithComments(path)
 

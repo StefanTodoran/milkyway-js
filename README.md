@@ -128,4 +128,3 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 * Stress test compiler code for both components and if clauses
 * Improve compiler by allowing boolean components to be written as `prop` rather than `prop=""`
 * Potentially modify compiler to allow multiple components per line?
-* Potentially modify compiler to allow multi-line if clauses?

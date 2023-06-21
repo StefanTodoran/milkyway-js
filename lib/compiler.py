@@ -4,8 +4,11 @@ import copy
 from pathlib import Path
 
 silent = False
-def output(data):
-  if not silent:
+def output(data, warn = False):
+  if silent: return
+  if warn:
+    print("WARN > " + data)
+  else:
     print(data)
 
 # =============== #
@@ -61,26 +64,47 @@ def extractPropName(line):
   propName = re.findall(r"{{\s*([A-Za-z]+)\s*}}", line)
   return propName
 
-def extractIfClause(string):
+def getNthMatch(pattern, string, n):
+  match = None
+  matches = re.finditer(pattern, string)
+  current = 0
+
+  for m in matches:
+    if current != n:
+      current += 1
+    else:
+      match = m
+      break
+
+  return match
+
+# Returns an object describing the n-th if clause
+# on the provided line, n being the number parameter.
+def extractIfClause(string, number = 0):
+  endPattern = r"{\[ %endif ]}"
+  end = re.findall(endPattern, string)
+
   pattern = r"\{\[\s*%\s*if\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
-  invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
-  
-  match = re.search(pattern, string)
+  match = getNthMatch(pattern, string, number)
+
   if match:
     return {
       "propName": match.group("prop"), 
       "inverted": False, 
       "start": match.start(),
-      "end": match.end()
+      "end": match.end(),
+      "inline": len(end) > number
     }
   
-  invertedMatch = re.search(invertedPattern, string)
+  invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
+  invertedMatch = getNthMatch(invertedPattern, string, number)
   if invertedMatch:
     return {
       "propName": invertedMatch.group("prop"), 
       "inverted": True,
       "start": invertedMatch.start(),
-      "end": invertedMatch.end()
+      "end": invertedMatch.end(),
+      "inline": len(end) > number
     }
     
   return None
@@ -102,34 +126,8 @@ def removeProp(string):
   pattern = r"\{\{\s*[a-zA-Z]+\s*\}\}"
   return re.sub(pattern, "", string)
 
-def removeSubstring(string, start, end):
-  return string[:start] + string[end+1:]
-
-# Removes the section of a string between an
-# if and its corresponding end if.
-def removeIfSection(line, clause):
-  start = clause["start"]
-  end = line.find("{[ %endif ]}") + len("{[ %endif ]}") - 1
-  return removeSubstring(line, start, end)
-
-# Removes any if and any end if declarations from
-# a string, leaves the rest of the string unchanged.
-def removeIfClause(line):
-  clause = extractIfClause(line)
-  if not clause: return line
-
-  start = clause["start"]
-  end = clause["end"] - 1
-  line = removeSubstring(line, start, end)
-  
-  start = line.find("{[ %endif ]}")
-  end = start + len("{[ %endif ]}") - 1
-  return removeSubstring(line, start, end)
-
 def populateComponentData(lines: list, props: dict):
   for index in range(len(lines)):
-    handleIfClause(lines, index, props)
-
     for prop, value in props.items():
       split = splitLineOnProp(lines[index], prop)
         
@@ -138,29 +136,95 @@ def populateComponentData(lines: list, props: dict):
 
     lines[index] = removeProp(lines[index]) # In case there was no prop value given
 
-  return lines
+# =============== #
+# IF CLAUSE LOGIC #
 
-def handleIfClause(lines: list, index: int, props: dict):
-  clause = extractIfClause(lines[index])
-  targetPropFound = False
-    
-  for prop in props:
-    if clause and clause["propName"] == prop:
-      targetPropFound = True
-    
-      if clause["inverted"]:
-        # If we have an if clause of the form {[ %if not prop ]}
-        lines[index] = removeIfSection(lines[index], clause)
+endIfToken = "{[ %endif ]}"
+
+def removeSubstring(string, start, end):
+  return string[:start] + string[end+1:]
+
+# Removes the section of a string between an
+# if and its corresponding end if.
+def removeIfSection(line, clause):
+  start = clause["start"]
+  end = line.find(endIfToken) + len(endIfToken) - 1
+  return removeSubstring(line, start, end)
+
+# Removes any if and any end if declarations from
+# a string, leaves the rest of the string unchanged.
+def removeIfClause(line):
+  clause = extractIfClause(line)
+  if clause:
+    start = clause["start"]
+    end = clause["end"] - 1
+    line = removeSubstring(line, start, end)
   
-  if clause and not clause["inverted"] and not targetPropFound:
-    # If we have an if clause of the form {[ %if prop ]} and prop's value was not specified
+  start = line.find(endIfToken)
+  if start != -1:
+    end = start + len(endIfToken) - 1
+    line = removeSubstring(line, start, end)
+
+  return line
+
+def isIfClauseSatisfied(clause: dict, props: dict):
+  for prop in props:
+    if clause["propName"] == prop:
+      return not clause["inverted"]
+    
+  return clause["inverted"]
+
+def handleInlineIfClauses(lines: list, index: int, props: dict, current: int = 0):
+  clause = extractIfClause(lines[index], current)
+
+  if not clause:
+    return
+  
+  if not clause["inline"]:
+    handleInlineIfClauses(lines, index, props, current + 1)
+    return
+  
+  if not isIfClauseSatisfied(clause, props):
+    # If we have an if clause of the form {[ %if not prop ]} and prop supplied, or
+    # we have an if clause of the form {[ %if prop ]} and prop's value was not specified
     lines[index] = removeIfSection(lines[index], clause)
+    current -= 1
 
   lines[index] = removeIfClause(lines[index]) # In case if didn't trigger
+  handleInlineIfClauses(lines, index, props, current)
 
-  # Check if there is another if on the line
-  clause = extractIfClause(lines[index])
-  if clause: handleIfClause(lines, index, props)
+def handleComponentIfLogic(lines: list, props: dict):
+  for index in range(len(lines)):
+    handleInlineIfClauses(lines, index, props)
+
+  nestedIfs = []
+  for index in range(len(lines)):
+    clause = extractIfClause(lines[index])
+    endClause = lines[index].find(endIfToken)
+    
+    # There should never be both a clause and an endClause, because
+    # that would constitute an inline if, which should have been handled.
+    if (clause and clause["inline"]) or (clause and endClause != -1):
+      output("Encountered inline if logic when all should have been handled. Output may be corrupted.", True)
+
+    if endClause != -1:
+      if len(nestedIfs) == 0: raise SyntaxError("(!) Encountered endif when no if clause had been opened!")
+      innerMost = nestedIfs.pop()
+
+      if not isIfClauseSatisfied(innerMost["clause"], props):
+        for _ in range(index - innerMost["start"] + 1):
+          lines.pop(innerMost["start"])
+        index = innerMost["start"]
+      else:
+        pass
+        lines[innerMost["start"]] = removeIfClause(lines[index])
+        lines[index] = removeIfClause(lines[index])
+
+    if clause:
+      nestedIfs.append({
+        "start": index,
+        "clause": clause
+      })
 
 # ======== #
 #   MISC   #
@@ -178,7 +242,7 @@ def concatenateComponentLines(lines):
       currentComponent += " " + line.strip()
 
       if componentStart != -1:
-        raise SyntaxError("Cannot declare a component inside another component!")
+        raise SyntaxError("(!) Cannot declare a component inside another component!")
       
       if componentEnd != -1:
         newLines.append(currentComponent)
@@ -221,12 +285,17 @@ def compile(doOutput = True):
         
         path = "./components/" + name.lower() + ".mcomp"
         if not os.path.exists(path):
-          raise NameError(path + " does not exist!")
+          raise FileNotFoundError("(!) " + path + " does not exist!")
 
         # Note that writeLines.pop(index) == line, it's the same line!
         splitLine = splitLineOnComponent(writeLines.pop(index))
         componentLines = readFileData(path)
-        componentLines = populateComponentData(componentLines, component["props"])
+        handleComponentIfLogic(componentLines, component["props"])
+        populateComponentData(componentLines, component["props"])
+
+        if len(componentLines) == 0:
+          # Due to if statements, the component is empty
+          continue
 
         # We do this to essentially "insert" the component
         # between whatever tags lie on either side of the indicator.

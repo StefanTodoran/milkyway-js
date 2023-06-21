@@ -115,7 +115,7 @@ def serve(
       print("\nStarting TypeScript compiler...") 
       tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
     except:
-      raise EnvironmentError("Failed to start TypeScript compiler, verify npx and tsc are installed.")
+      raise EnvironmentError("(!) Failed to start TypeScript compiler, verify npx and tsc are installed.")
 
   jsWatcher = None
   if minifyJS:
