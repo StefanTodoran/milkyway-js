@@ -198,10 +198,11 @@ def handleComponentIfLogic(lines: list, props: dict):
     handleInlineIfClauses(lines, index, props)
 
   nestedIfs = []
-  for index in range(len(lines)):
+  index = 0
+  while index < len(lines):
     clause = extractIfClause(lines[index])
     endClause = lines[index].find(endIfToken)
-    
+
     # There should never be both a clause and an endClause, because
     # that would constitute an inline if, which should have been handled.
     if (clause and clause["inline"]) or (clause and endClause != -1):
@@ -214,9 +215,8 @@ def handleComponentIfLogic(lines: list, props: dict):
       if not isIfClauseSatisfied(innerMost["clause"], props):
         for _ in range(index - innerMost["start"] + 1):
           lines.pop(innerMost["start"])
-        index = innerMost["start"]
+        index = innerMost["start"] - 1
       else:
-        pass
         lines[innerMost["start"]] = removeIfClause(lines[index])
         lines[index] = removeIfClause(lines[index])
 
@@ -225,6 +225,8 @@ def handleComponentIfLogic(lines: list, props: dict):
         "start": index,
         "clause": clause
       })
+
+    index += 1
 
 # ======== #
 #   MISC   #
