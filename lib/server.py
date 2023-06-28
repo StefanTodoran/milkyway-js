@@ -87,8 +87,8 @@ class FileWatcher(object):
       if stamp != self._cachedStamps[index]:
         self._cachedStamps[index] = stamp
         return True # file changed
-      else:
-        return False # file unchanged
+    
+    return False # file unchanged
 
 # =============== #
 # *** RUNNING *** #
