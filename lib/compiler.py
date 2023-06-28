@@ -135,6 +135,11 @@ def populateComponentData(lines: list, props: dict):
 
 endIfToken = "{[ %endif ]}"
 
+def fixEndIfTokens(line):
+    pattern = r"{\[\s*%endif\s*\]}"
+    fixed = re.sub(pattern, endIfToken, line)
+    return fixed
+
 def removeSubstring(string, start, end):
   return string[:start] + string[end+1:]
 
@@ -191,6 +196,7 @@ def handleInlineIfClauses(lines: list, index: int, props: dict, current: int = 0
 
 def handleComponentIfLogic(lines: list, props: dict):
   for index in range(len(lines)):
+    lines[index] = fixEndIfTokens(lines[index])
     handleInlineIfClauses(lines, index, props)
 
   nestedIfs = []
