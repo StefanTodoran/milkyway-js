@@ -122,9 +122,10 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 
 ## TODO
 
-* Finishing touches build script for manage.py
-* More settings in configuration file, finish implementing existing
-* Add more basic template HTML, CSS and TS
+* Factor out minification and typescript transpilation from server to compiler
+* Add bare compile option to manage.py script 
+* More settings in configuration file, finish implementing existing ones
+* Improve the basic template HTML, CSS and TS
 * Stress test compiler code for both components and if clauses
-* Improve compiler by allowing boolean components to be written as `prop` rather than `prop=""`
-* Potentially modify compiler to allow multiple components per line?
+* Improve compiler by allowing boolean components to be written as `prop` rather than `prop=""` or `prop="true"`
+* Add nested components inside components

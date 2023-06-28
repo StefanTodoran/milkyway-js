@@ -74,19 +74,21 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
     SimpleHTTPRequestHandler.do_GET(self)
 
 class FileWatcher(object):
-  def __init__(self, path):
-    self._cached_stamp = None
-    self.filename = path
+  def __init__(self, paths: list[str]):
+    self._cachedStamps = [None] * len(paths)
+    self.watchPaths = paths
 
   def check(self):
-    stamp = os.stat(self.filename).st_mtime
+    for index in range(len(self.watchPaths)):
+      file = self.watchPaths[index]
+      stamp = os.stat(file).st_mtime
 
-    print(f"> Checking {self.filename} modified time:", stamp, self._cached_stamp)
-    if stamp != self._cached_stamp:
-      self._cached_stamp = stamp
-      return True # file changed
-    else:
-      return False # file unchanged
+      print(f"> Checking {file} modified time:", stamp, self._cachedStamps[index])
+      if stamp != self._cachedStamps[index]:
+        self._cachedStamps[index] = stamp
+        return True # file changed
+      else:
+        return False # file unchanged
 
 # =============== #
 # *** RUNNING *** #
@@ -110,8 +112,16 @@ def serve(
 
   if useTS:
     try:
+      print("Verifying TypeScript installation...")
+      installed = subprocess.check_output(["npm", "list"], shell=True)
+    except:
+      raise EnvironmentError("(!) Failed to verify installed packages, is npm installed?")
+    if not "typescript" in str(installed):
+      raise EnvironmentError("(!) TypeScript is not installed! Running npm list did not reveal TypeScript installation.")
+
+    try:
       # start the ts compiler in the bg with no ouput
-      FNULL = open(os.devnull, 'w')
+      FNULL = open(os.devnull, "w")
       print("\nStarting TypeScript compiler...") 
       tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
     except:
@@ -119,14 +129,15 @@ def serve(
 
   jsWatcher = None
   if minifyJS:
-    # TODO: this should watch all ts source files, use glob and modify FileWatcher
     print("Watching for changes and minifying transpiled JavaScript...")
-    jsWatcher = FileWatcher("src/index.ts")
+    scripts = locateAll("./dist/", "*.js")
+    paths = [str(path) for path in scripts]
+    jsWatcher = FileWatcher(paths)
   
   cssWatcher = None
   if minifyCSS:
     print("Watching for and minifying CSS changes...")
-    cssWatcher = FileWatcher("src/index.css")
+    cssWatcher = FileWatcher(["src/index.css"])
   
   doMinifyHTML = minifyHTML
   if minifyHTML:

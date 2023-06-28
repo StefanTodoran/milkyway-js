@@ -102,35 +102,6 @@ def extractIfClause(string, number = 0):
     }
     
   return None
-  
-  # IF CLAUSES NO VALUE
-  # endPattern = r"{\[ %endif ]}"
-  # end = re.findall(endPattern, string)
-
-  # pattern = r"\{\[\s*%\s*if\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
-  # match = getNthMatch(pattern, string, number)
-
-  # if match:
-  #   return {
-  #     "propName": match.group("prop"), 
-  #     "inverted": False, 
-  #     "start": match.start(),
-  #     "end": match.end(),
-  #     "inline": len(end) > number
-  #   }
-  
-  # invertedPattern = r"\{\[\s*%\s*if\s+not\s+(?P<prop>[a-zA-Z]+)\s*\]\}"
-  # invertedMatch = getNthMatch(invertedPattern, string, number)
-  # if invertedMatch:
-  #   return {
-  #     "propName": invertedMatch.group("prop"), 
-  #     "inverted": True,
-  #     "start": invertedMatch.start(),
-  #     "end": invertedMatch.end(),
-  #     "inline": len(end) > number
-  #   }
-    
-  # return None
 
 # =============== #
 # DATA POPULATING #
@@ -152,10 +123,10 @@ def removeProp(string):
 def populateComponentData(lines: list, props: dict):
   for index in range(len(lines)):
     for prop, value in props.items():
-      split = splitLineOnProp(lines[index], prop)
-        
-      if len(split) == 2:
-        lines[index] = split[0] + value + split[1]
+      parts = splitLineOnProp(lines[index], prop)
+      
+      if len(parts) > 1:
+        lines[index] = value.join(parts)
 
     lines[index] = removeProp(lines[index]) # In case there was no prop value given
 
