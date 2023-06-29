@@ -9,6 +9,10 @@
   // transpiler is being invoked.
   "useTypeScript": true,
 
+  // Whether the webpack bundler should be used when the milkway
+  // transpiler is being invoked.
+  "useWebpack": true,
+
   // Whether the project's JavaScript files should be minified or not.
   // Not compatible with projects not using TypeScript.
   "minifyJavaScript": true,

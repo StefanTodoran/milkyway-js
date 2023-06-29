@@ -63,6 +63,7 @@ def main():
     redirect = settings["pagesRedirect"]
     outDir = settings["outDir"]
     useTS = settings["useTypeScript"]
+    doPack = settings["useWebpack"]
     minifyJS = settings["minifyJavaScript"]
     minifyCSS = settings["minifyCSS"]
     minifyHTML = settings["minifyHTML"]
@@ -70,10 +71,11 @@ def main():
     if len(sys.argv) == 2:
       start()
       serve(
-        useTS=useTS, 
-        minifyJS=minifyJS, 
-        minifyCSS=minifyCSS, 
-        minifyHTML=minifyHTML,
+        useTS=False,
+        doPack=False,
+        minifyJS=False, 
+        minifyCSS=False, 
+        minifyHTML=False,
         pagesRedirect=redirect,
       )
     
@@ -87,8 +89,9 @@ def main():
           rootDirectory="/docs",
           pagesRedirect=redirect,
           useTS=False,
+          doPack=False,
           minifyJS=False,
-          minifyCSS=False, 
+          minifyCSS=False,
           minifyHTML=False,
         )
 
@@ -98,6 +101,7 @@ def main():
           watchComponents=True,
           outDir=outDir,
           useTS=useTS,
+          doPack=doPack,
           minifyJS=minifyJS,
           minifyCSS=minifyCSS, 
           minifyHTML=minifyHTML,

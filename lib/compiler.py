@@ -266,7 +266,13 @@ def concatenateComponentLines(lines):
 # ======== #
 #   MAIN   #
 
-def compile(doOutput = True):
+def minifyJS():
+  pass
+
+def minifyCSS():
+  pass
+
+def compileHTML(doOutput = True):
   global silent
   silent = not doOutput
   output("\nStarting MilkywayJS compilation...")

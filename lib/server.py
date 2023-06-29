@@ -2,7 +2,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_html_file
 from css_html_js_minify import process_single_css_file
 from css_html_js_minify import process_single_js_file
-from .compiler import compile
+from .compiler import compileHTML
 from .build import locateAll
 import subprocess
 import sys
@@ -55,7 +55,7 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
 
     if self.path.endswith(".html") or self.path in home_paths:
       if watch:
-        compile(doOutput=True)
+        compileHTML(doOutput=True)
 
       if doMinifyHTML:
         pages = locateAll("./", "*.html")
@@ -108,7 +108,7 @@ def serve(
   redirect = pagesRedirect
   watch = watchComponents
   outputLoc = outDir
-  compile(doOutput=False)
+  compileHTML(doOutput=False)
 
   if useTS:
     try:
