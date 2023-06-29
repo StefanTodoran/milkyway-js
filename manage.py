@@ -51,6 +51,7 @@ def usage(message: str = ""):
 
 def main():
   settings = getSettingsData("milkyconfig.jsonc")
+  outDir = settings["outDir"]
 
   if len(sys.argv) == 1:
     usage("No command provided!")
@@ -61,7 +62,6 @@ def main():
 
   elif sys.argv[1] == "runserver":
     redirect = settings["pagesRedirect"]
-    outDir = settings["outDir"]
     useTS = settings["useTypeScript"]
     doPack = settings["useWebpack"]
     minifyJS = settings["minifyJavaScript"]

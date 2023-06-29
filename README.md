@@ -4,11 +4,11 @@ I have long found myself greatly frustrated by the shortcomings of vanilla HTML.
 
 It truly boggles the mind that in a bare HTML, CSS + JS project one cannot factor out the header into another file without incurring some kind of cost. While in the past I've solved this with a `<script>` tag which replaces itself, all existing solutions are simply unacceptable. One should be able to factor out snippets of HTML to their own files for use elsewhere without breaking the experience for non-JS users, without using an overkill library like React or Vue, and without needing to learn an entirely different preprocessor syntax like Pug.
 
-The goal of MilkywayJS, simply put, is to offer a development experience where you can utilize the benefits of components in your HTML, without any computational overhead. At runtime, the HTML code you ship to the browser should look no different than it would had you done things the manual way.
+The goal of Milkyway, simply put, is to offer a development experience where you can utilize the benefits of components in your HTML, without any computational overhead. At runtime, the HTML code you ship to the browser should look no different than it would had you done things the manual way.
 
 # How it Works
 
-Everything in MilkywayJS is controlled via the `manage.py` administration script. This file handles the TypeScript compiler, CSS minification, `mhtml` + `mcomp` transpilation to `html`, and development vs production builds.
+Everything in Milkyway is controlled via the `manage.py` administration script. This file handles the TypeScript compiler, CSS minification, `mhtml` + `mcomp` transpilation to `html`, and development vs production builds.
 
 Here is an example of how HTML components work:
 
@@ -109,12 +109,18 @@ manage.py build
 
 ## Running Locally
 
+Use the following commands to run the server in development and production modes, respectively. Note that production mode won't watch for changes (there shouldn't be changes anyway).
+
 ```
 manage.py runserver --watch
 ```
 ```
 manage.py runserver --docs
 ```
+
+A note on webpack:
+
+When running Milkway without TypeScript, all JavaScript source files should be placed in the `dist` folder (or script tags should reference the `src` folder). When running with TypeScript, `.ts` all source files should go in `dist`, and tsconfig should output to `dist`. These files can import between each other, or be completely separate and linked via their own script tags. However, if working with webpack, `index.ts` should be the only entry point for the application. Attempting to have multiple entry points is supported, but imports between these local files will not work.
 
 ## Keep in Mind
 

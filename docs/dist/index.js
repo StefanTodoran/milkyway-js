@@ -3,13 +3,15 @@ window.addEventListener("load", main);
 var seedRandom = mulberry32(9);
 function main() {
     addAnimationObserver();
+    initializeStarCanvas();
     initializeMagicText(3, 1000);
     initializeCommandSnippets();
-    initializeStarCanvas();
-    const scrollButton = document.getElementById("scroll-top-button");
-    scrollButton.addEventListener("click", (evt) => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        evt.preventDefault();
+    const scrollButtons = document.querySelectorAll('[href*="scroll-to-top"]');
+    scrollButtons.forEach(scrollButton => {
+        scrollButton.addEventListener("click", (evt) => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            evt.preventDefault();
+        });
     });
 }
 function initializeMagicText(numStarsPerText, starAnimInterval) {
@@ -155,7 +157,7 @@ function mulberry32(a) {
 function addOpacityToHexColor(opacity, hexColor) {
     if (hexColor.length !== 7)
         throw new TypeError("hexColor must be a 6-digit string with the pound sign!");
-    var opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
+    const opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
     return hexColor + opacityHex;
 }
 function getCookieValue(key) {

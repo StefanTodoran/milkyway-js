@@ -2,7 +2,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_html_file
 from css_html_js_minify import process_single_css_file
 from css_html_js_minify import process_single_js_file
-from .compiler import compileHTML
+from .compiler import compile
 from .build import locateAll
 import subprocess
 import sys
@@ -34,7 +34,7 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
     httpd.serve_forever()
   except:
     if bg_proc:
-      print("Recieved keyboard interrupt, killing TypeScript compiler and exiting...")
+      print("Recieved keyboard interrupt, killing compiler/bunlder and exiting...")
       bg_proc.kill()
     print("")
 
@@ -55,7 +55,7 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
 
     if self.path.endswith(".html") or self.path in home_paths:
       if watch:
-        compileHTML(doOutput=True)
+        compile(doOutput=True)
 
       if doMinifyHTML:
         pages = locateAll("./", "*.html")
@@ -93,10 +93,20 @@ class FileWatcher(object):
 # =============== #
 # *** RUNNING *** #
 
+def verifyDependencyInstallation(name: str):
+  try:
+    print(f"Verifying {name} installation...")
+    installed = subprocess.check_output(["npm", "list"], shell=True)
+  except:
+    raise EnvironmentError("(!) Failed to verify installed packages, is npm installed?")
+  if not name.lower() in str(installed):
+    raise EnvironmentError(f"(!) {name} is not installed! Running npm list did not reveal {name} installation.")
+
 def serve(
       watchComponents = False,
       rootDirectory = "", 
-      useTS = False, 
+      useTS = False,
+      doPack = False,
       minifyJS = False, 
       minifyCSS = False, 
       minifyHTML = False, 
@@ -108,24 +118,29 @@ def serve(
   redirect = pagesRedirect
   watch = watchComponents
   outputLoc = outDir
-  compileHTML(doOutput=False)
+  compile(doOutput=False)
 
-  if useTS:
-    try:
-      print("Verifying TypeScript installation...")
-      installed = subprocess.check_output(["npm", "list"], shell=True)
-    except:
-      raise EnvironmentError("(!) Failed to verify installed packages, is npm installed?")
-    if not "typescript" in str(installed):
-      raise EnvironmentError("(!) TypeScript is not installed! Running npm list did not reveal TypeScript installation.")
+  if useTS: verifyDependencyInstallation("TypeScript")
+  if doPack: verifyDependencyInstallation("Webpack")
+  if useTS and doPack: verifyDependencyInstallation("ts-loader")
 
+  if useTS and not doPack:
     try:
       # start the ts compiler in the bg with no ouput
       FNULL = open(os.devnull, "w")
       print("\nStarting TypeScript compiler...") 
-      tsc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+      proc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
     except:
       raise EnvironmentError("(!) Failed to start TypeScript compiler, verify npx and tsc are installed.")
+  
+  elif doPack:
+    try:
+      # start the ts compiler in the bg with no ouput
+      FNULL = open(os.devnull, "w")
+      print("\nStarting Webpack bundler...") 
+      proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+    except:
+      raise EnvironmentError("(!) Failed to start TypeScript compiler, verify npx and webpack cli are installed.")
 
   jsWatcher = None
   if minifyJS:
@@ -149,7 +164,7 @@ def serve(
     prepare(f"Serving from {directory} directory...")
 
   if useTS:
-    run(HTTPServer, NoExtensionHandler, tsc)
+    run(HTTPServer, NoExtensionHandler, proc)
   else:
     run(HTTPServer, NoExtensionHandler)
 
