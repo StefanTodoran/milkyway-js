@@ -4,7 +4,7 @@ import re
 import json
 from lib.server import serve
 from lib.build import migrate
-from lib.update import update
+from subprocess import Popen
 
 intro = r"""
         _ _ _                               __  __    
@@ -60,7 +60,8 @@ def main():
 
   elif sys.argv[1] == "update" and len(sys.argv) == 2:
     start()
-    update()
+    Popen("python lib/update.py")
+    exit()
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
     start()
