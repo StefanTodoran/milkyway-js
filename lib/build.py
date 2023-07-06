@@ -1,23 +1,9 @@
 import os
 import shutil
-from pathlib import Path
+from lib.utils import locateAll, logStatus, output
 
 # ======= #
 # HELPERS #
-
-def locateAll(root: str, glob: str, ignore: list):
-  dir = Path(root)
-  all = sorted(dir.glob(glob))
-  print(f"Located {len(all)} {glob} files: {[str(file) for file in all]}")
-
-  if ignore:
-    ignore = {str(Path(root) / file) for file in ignore}
-    files = [file for file in all if str(file) not in ignore]
-    pruned = list(set(all) - set(files))
-    print(f"Ignored {len(pruned)} of located files: {[str(file) for file in pruned]}")
-    return files
-  else:
-    return all
 
 def migrateAll(root: str, dest: str, dir: str, glob: str):
   if not os.path.exists(dest + dir):
@@ -26,29 +12,29 @@ def migrateAll(root: str, dest: str, dir: str, glob: str):
   files = locateAll(root + dir, glob)
   for file in files:
     shutil.copyfile(file, dest / file)
-  print(f"Migrated all {len(files)} {glob} files to production\n")
+  output(f"Migrated all {len(files)} {glob} files to production\n")
 
 # ======== #
 #   MAIN   #
 
 def migrate(outDir: str = "dist/"):
-  print("\nBuilding site to production...")
+  output("Building site to production...", logStatus.EMPHASIS, newLine=True)
 
   root = "./"
   dest = "./docs/"
 
   if os.path.exists(dest):
-    print("Clearing previous build...", end=" ")
+    output("Clearing previous build...", logStatus.WARN, end=" ")
     shutil.rmtree(dest)
-    print("done.\n")
+    output("done.\n")
   
   migrateAll(root, dest, "", "*.html")
   migrateAll(root, dest, outDir, "*.js")
   migrateAll(root, dest, outDir, "*.min.css")
 
-  print("Recursively copying all assets to produciton...", end=" ")
+  output("Recursively copying all assets to produciton...", logStatus.GOOD, end=" ")
   shutil.copytree(root + "assets/", dest + "assets/")
-  print("done.\n")
+  output("done.\n")
 
 if __name__ == "__main__":
   compile()

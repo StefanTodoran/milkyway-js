@@ -1,14 +1,6 @@
 from pathlib import Path
 import requests
 
-silent = False
-def output(data, warn = False):
-  if silent: return
-  if warn:
-    print("WARN > " + data)
-  else:
-    print(data)
-
 def locateAll(root: str, glob: str, ignore: list):
   dir = Path(root)
   all = sorted(dir.glob(glob))
@@ -24,7 +16,7 @@ def locateAll(root: str, glob: str, ignore: list):
     return all
 
 def writeDataToFile(path: str, lines: list):
-  output("Writing data to " + path)
+  print("Writing data to " + path)
 
   with open(path, "w", encoding="utf8") as file:
     file.writelines(lines)
@@ -37,21 +29,18 @@ def updateScript(path, url):
 # ======== #
 #   MAIN   #
 
-def update(doOutput = True, updateSource = "https://raw.githubusercontent.com/StefanTodoran/milkyway-js/main/"):
-  global silent
-  silent = not doOutput
-  output("\nUpdating MilkywayJS...")
+def update(updateSource = "https://raw.githubusercontent.com/StefanTodoran/milkyway-js/main/"):
+  print("\nUpdating MilkywayJS...")
 
   libs = locateAll("./lib/", "*.py", ["__init__.py", "update.py"])
   paths = [str(file).replace("\\", "/") for file in libs]
   
   for path in paths:
     updateScript(path, updateSource)
-    
   updateScript("manage.py", updateSource)
 
-  output(f"Updated all {len(libs)} lib files!\n")
+  print(f"Updated all {len(libs)} lib files!\n")
 
 if __name__ == "__main__":
   update()
-  exit("Exiting...")
+  exit("Update complete! Press CTRL+C to exit.")

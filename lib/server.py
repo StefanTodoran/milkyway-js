@@ -2,9 +2,12 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from css_html_js_minify import process_single_html_file
 from css_html_js_minify import process_single_css_file
 from css_html_js_minify import process_single_js_file
+
+from lib.utils import logStatus, output, setOutputMode
 from .compiler import compile
-from .build import locateAll
+from .utils import formatLog, locateAll
 import subprocess
+import threading
 import sys
 import os
 
@@ -20,13 +23,18 @@ def link(uri, label=None):
     return escape_mask.format(parameters, uri, label)
 
 def prepare(message: str):
-  print(message)
-  print("Server ready and waiting at", link("http://localhost:8080/"))
+  output(message)
+  output("Server ready and waiting at " + link("http://localhost:8080/") + "\n", logStatus.GOOD)
+
+def handleSubprocessErrors(proc):
+  for line in proc.stdout:
+    if "error" in str(line):
+      output(line, logStatus.WARN)
 
 # ============== #
 # *** SERVER *** #
 
-def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc=None):
+def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc=None, print_thread=None):
   server_address = ("", 8080)
   httpd = server_class(server_address, handler_class)
 
@@ -34,24 +42,25 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
     httpd.serve_forever()
   except:
     if bg_proc:
-      print("Recieved keyboard interrupt, killing compiler/bunlder and exiting...")
+      output("Recieved keyboard interrupt, killing compiler/bunlder and exiting...", logStatus.WARN)
       bg_proc.kill()
-    print("")
+      print_thread.join()
+    output("")
 
 class NoExtensionHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
-    print("\n> Unmodified path:", self.path)
+    output("Unmodified path: " + self.path, newLine=True)
     if redirect:
       self.path = directory + self.path.replace(redirect, "/")
     else:
       self.path = directory + self.path
-    print("> With directory and redirect:", self.path)
+    output("With directory and redirect: " + self.path)
     
     home_paths = ["/", "/docs/"]
     # The exclusion of paths with a period excludes image, js and other file types
     if self.path not in home_paths and not "." in self.path:
       self.path += ".html"
-      print("> Extension added:", self.path)
+      output("Extension added: " + self.path)
 
     if self.path.endswith(".html") or self.path in home_paths:
       if watch:
@@ -63,13 +72,13 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
           process_single_html_file(page, overwrite=True, output_path=page)
     
     if jsWatcher and self.path.endswith(".js") and jsWatcher.check():
-      print("> JavaScript modified, minifying...")
+      output("JavaScript modified, minifying...", logStatus.EMPHASIS)
       # unminifiedScript = "." + self.path.replace(".min", "")
       # process_single_js_file(unminifiedScript, overwrite=False)
       process_single_js_file(self.path, overwrite=True)
     
     if cssWatcher and self.path.endswith(".css") and cssWatcher.check():
-      print("> CSS modified, minifying stylesheet...")
+      output("CSS modified, minifying stylesheet...", logStatus.EMPHASIS)
       process_single_css_file("src/index.css", overwrite=False, output_path=outputLoc + "/" + "index.min.css")
 
     SimpleHTTPRequestHandler.do_GET(self)
@@ -84,7 +93,7 @@ class FileWatcher(object):
       file = self.watchPaths[index]
       stamp = os.stat(file).st_mtime
 
-      print(f"> Checking {file} modified time:", stamp, self._cachedStamps[index])
+      output(f"Checking {file} modified time: {stamp}, {self._cachedStamps[index]}", newLine=True)
       if stamp != self._cachedStamps[index]:
         self._cachedStamps[index] = stamp
         return True # file changed
@@ -96,12 +105,12 @@ class FileWatcher(object):
 
 def verifyDependencyInstallation(name: str):
   try:
-    print(f"Verifying {name} installation...")
+    output(f"Verifying {name} installation...")
     installed = subprocess.check_output(["npm", "list"], shell=True)
   except:
-    raise EnvironmentError("(!) Failed to verify installed packages, is npm installed?")
+    raise EnvironmentError(formatLog("Failed to list installed packages, is npm installed?"), logStatus.FAIL)
   if not name.lower() in str(installed):
-    raise EnvironmentError(f"(!) {name} is not installed! Running npm list did not reveal {name} installation.")
+    raise EnvironmentError(formatLog(f"{name} is not installed! Running npm list did not reveal {name} installation."), logStatus.FAIL)
 
 def serve(
       watchComponents = False,
@@ -120,6 +129,7 @@ def serve(
   watch = watchComponents
   outputLoc = outDir
   compile(doOutput=False)
+  setOutputMode(False)
 
   if useTS: verifyDependencyInstallation("TypeScript")
   if doPack: verifyDependencyInstallation("Webpack")
@@ -127,37 +137,35 @@ def serve(
 
   if useTS and not doPack:
     try:
-      # start the ts compiler in the bg with no ouput
-      FNULL = open(os.devnull, "w")
-      print("\nStarting TypeScript compiler...") 
-      proc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+      output("\nStarting TypeScript compiler...") 
+      proc = subprocess.Popen(["npx", "tsc", "-w"], shell=True, stdout=subprocess.PIPE)
     except:
-      raise EnvironmentError("(!) Failed to start TypeScript compiler, verify npx and tsc are installed.")
+      raise EnvironmentError(formatLog("Failed to start TypeScript compiler, verify npx and tsc are installed.", logStatus.FAIL))
   
   elif doPack:
     try:
-      # start the ts compiler in the bg with no ouput
-      FNULL = open(os.devnull, "w")
-      print("\nStarting Webpack bundler...") 
-      proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+      output("\nStarting Webpack bundler...") 
+      proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=subprocess.PIPE)
+      # FNULL = open(os.devnull, "w")
+      # proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
     except:
-      raise EnvironmentError("(!) Failed to start TypeScript compiler, verify npx and webpack cli are installed.")
+      raise EnvironmentError(formatLog("Failed to start TypeScript compiler, verify npx and webpack cli are installed.", logStatus.FAIL))
 
   jsWatcher = None
   if minifyJS:
-    print("Watching for changes and minifying transpiled JavaScript...")
+    output("Watching for changes and minifying transpiled JavaScript...")
     scripts = locateAll("./dist/", "*.js")
     paths = [str(path) for path in scripts]
     jsWatcher = FileWatcher(paths)
   
   cssWatcher = None
   if minifyCSS:
-    print("Watching for and minifying CSS changes...")
+    output("Watching for and minifying CSS changes...")
     cssWatcher = FileWatcher(["src/index.css"])
   
   doMinifyHTML = minifyHTML
   if minifyHTML:
-    print("Watching for and minifying HTML changes...")
+    output("Watching for and minifying HTML changes...")
   
   if directory == "":
     prepare("Serving from root directory...")
@@ -165,32 +173,8 @@ def serve(
     prepare(f"Serving from {directory} directory...")
 
   if useTS:
-    run(HTTPServer, NoExtensionHandler, proc)
+    printThread = threading.Thread(target=handleSubprocessErrors, args=(proc,))
+    printThread.start()
+    run(HTTPServer, NoExtensionHandler, proc, printThread)
   else:
     run(HTTPServer, NoExtensionHandler)
-
-# ============ #
-# *** MAIN *** #
-
-if __name__ == "__main__":
-  if len(sys.argv) == 1:
-    serve()
-
-  elif len(sys.argv) == 2:
-    dir_flags = ["--docs", "-d"]
-    head_flags = ["--watch", "-w"]
-
-    if sys.argv[1] in dir_flags:
-      print(f"Recieved '{sys.argv[1]}' flag")
-      serve(rootDirectory="/docs")
-
-    elif sys.argv[1] in head_flags:
-      print(f"Recieved '{sys.argv[1]}' flag")
-      serve(watchChanges=True)
-    
-    else:
-      print(f"Invalid flag provided. Expected one of {str(dir_flags + head_flags)}, got '{sys.argv[1]}'")
-
-  else:
-    # We can serve from the docs folder or watch for head changes, but it doesn't make sense to do both. 
-    print(f"Invalid number of arguments. Flags are mutually exclusive. Expected at most 1, got {len(sys.argv) - 1}")

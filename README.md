@@ -108,6 +108,12 @@ MilkywayJS is made with the separation of development and production versions in
 manage.py build
 ```
 
+Use the following command to update milkway.
+
+```
+manage.py update
+```
+
 ## Running Locally
 
 Use the following commands to run the server in development and production modes, respectively. Note that production mode won't watch for changes (there shouldn't be changes anyway).
@@ -129,9 +135,7 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 
 ## TODO
 
-* Add update command to manage.py which checks repo and updates `lib` and then itself
 * Run webpack in development mode, then run once in production mode when running `build` command
-* Print typescript and webpack errors to terminal
 * Put transpiled `.html` pages in their own folder?
 * Add bare compile option to manage.py script 
 * More settings in configuration file, finish implementing existing ones

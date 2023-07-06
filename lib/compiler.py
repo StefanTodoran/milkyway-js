@@ -2,14 +2,7 @@ import os
 import re
 import copy
 from pathlib import Path
-
-silent = False
-def output(data, warn = False):
-  if silent: return
-  if warn:
-    print("WARN > " + data)
-  else:
-    print(data)
+from lib.utils import formatLog, logStatus, output, setOutputMode
 
 # =============== #
 # FILE MANAGEMENT #
@@ -169,7 +162,6 @@ def removeIfClause(line):
 def isIfClauseSatisfied(clause: dict, props: dict):
   for prop in props:
     if clause["propName"] == prop:
-      # print(clause["value"], props[prop])
       if clause["value"] == True or clause["value"] == props[prop]:
         return not clause["inverted"]
     
@@ -211,7 +203,7 @@ def handleComponentIfLogic(lines: list, props: dict):
       output("Encountered inline if logic when all should have been handled. Output may be corrupted.", True)
 
     if endClause != -1:
-      if len(nestedIfs) == 0: raise SyntaxError("(!) Encountered endif when no if clause had been opened!")
+      if len(nestedIfs) == 0: raise SyntaxError(formatLog("Encountered endif when no if clause had been opened!", logStatus.FAIL))
       innerMost = nestedIfs.pop()
 
       if not isIfClauseSatisfied(innerMost["clause"], props):
@@ -246,7 +238,7 @@ def concatenateComponentLines(lines):
       currentComponent += " " + line.strip()
 
       if componentStart != -1:
-        raise SyntaxError("(!) Cannot declare a component inside another component!")
+        raise SyntaxError(formatLog("Cannot declare a component inside another component!", logStatus.FAIL))
       
       if componentEnd != -1:
         newLines.append(currentComponent)
@@ -267,9 +259,8 @@ def concatenateComponentLines(lines):
 #   MAIN   #
 
 def compile(doOutput = True):
-  global silent
-  silent = not doOutput
-  output("\nStarting MilkywayJS compilation...")
+  setOutputMode(not doOutput)
+  output("Starting MilkywayJS compilation...", logStatus.EMPHASIS, newLine=True)
 
   pages = locateAllPages("./pages/")
   for page in pages:
@@ -289,7 +280,7 @@ def compile(doOutput = True):
         
         path = "./components/" + name.lower() + ".mcomp"
         if not os.path.exists(path):
-          raise FileNotFoundError("(!) " + path + " does not exist!")
+          raise FileNotFoundError(formatLog("(!) " + path + " does not exist!", logStatus.FAIL))
 
         # Note that writeLines.pop(index) == line, it's the same line!
         splitLine = splitLineOnComponent(writeLines.pop(index))
@@ -313,7 +304,7 @@ def compile(doOutput = True):
 
     writeDataToFile(getSavePath(page), writeLines)
 
-  output(f"Compiled all {len(pages)} HTML files found\n")
+  output(f"Compiled all {len(pages)} HTML files found\n", logStatus.GOOD)
 
 if __name__ == "__main__":
   compile()
