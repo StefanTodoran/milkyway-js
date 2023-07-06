@@ -15,7 +15,7 @@
 
   // Whether the project's JavaScript files should be minified or not.
   // This option has no effect if using webpack.
-  "minifyJavaScript": true,
+  "minifyJavaScript": false,
 
   // Whether the HTML and CSS should be minified, respectively.
   "minifyHTML": false,

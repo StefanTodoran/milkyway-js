@@ -4,6 +4,7 @@ import re
 import json
 from lib.server import serve
 from lib.build import migrate
+from lib.update import update
 
 intro = r"""
         _ _ _                               __  __    
@@ -48,6 +49,7 @@ def usage(message: str = ""):
   print("\n" + message + "Usage:")
   print("python serve.py runserver [--watch] [--docs]")
   print("python serve.py build\n")
+  print("python serve.py update\n")
 
 def main():
   settings = getSettingsData("milkyconfig.jsonc")
@@ -55,6 +57,10 @@ def main():
 
   if len(sys.argv) == 1:
     usage("No command provided!")
+
+  elif sys.argv[1] == "update" and len(sys.argv) == 2:
+    start()
+    update()
 
   elif sys.argv[1] == "build" and len(sys.argv) == 2:
     start()

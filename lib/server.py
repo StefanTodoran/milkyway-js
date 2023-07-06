@@ -64,8 +64,9 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
     
     if jsWatcher and self.path.endswith(".js") and jsWatcher.check():
       print("> JavaScript modified, minifying...")
-      unminifiedScript = "." + self.path.replace(".min", "")
-      process_single_js_file(unminifiedScript, overwrite=False)
+      # unminifiedScript = "." + self.path.replace(".min", "")
+      # process_single_js_file(unminifiedScript, overwrite=False)
+      process_single_js_file(self.path, overwrite=True)
     
     if cssWatcher and self.path.endswith(".css") and cssWatcher.check():
       print("> CSS modified, minifying stylesheet...")

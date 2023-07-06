@@ -8,6 +8,7 @@ window.addEventListener("load", main);
 var seedRandom = mulberry32(9);
 
 function main() {
+  console.log("test");
   addAnimationObserver();
   initializeStarCanvas();
   initializeMagicText(3, 1000);

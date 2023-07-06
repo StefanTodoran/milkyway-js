@@ -5,11 +5,19 @@ from pathlib import Path
 # ======= #
 # HELPERS #
 
-def locateAll(root: str, glob: str):
+def locateAll(root: str, glob: str, ignore: list):
   dir = Path(root)
-  files = sorted(dir.glob(glob))
-  print(f"Located {len(files)} {glob} files: {[str(file) for file in files]}")
-  return files
+  all = sorted(dir.glob(glob))
+  print(f"Located {len(all)} {glob} files: {[str(file) for file in all]}")
+
+  if ignore:
+    ignore = {str(Path(root) / file) for file in ignore}
+    files = [file for file in all if str(file) not in ignore]
+    pruned = list(set(all) - set(files))
+    print(f"Ignored {len(pruned)} of located files: {[str(file) for file in pruned]}")
+    return files
+  else:
+    return all
 
 def migrateAll(root: str, dest: str, dir: str, glob: str):
   if not os.path.exists(dest + dir):
