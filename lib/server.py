@@ -1,5 +1,4 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from css_html_js_minify import process_single_html_file
 from css_html_js_minify import process_single_css_file
 from css_html_js_minify import process_single_js_file
 
@@ -8,8 +7,8 @@ from .compiler import compile
 from .utils import formatLog, locateAll
 import subprocess
 import threading
-import sys
 import os
+import re
 
 # Found this funky little function on stack overflow:
 # https://stackoverflow.com/questions/40419276/python-how-to-print-text-to-console-as-hyperlink
@@ -27,8 +26,16 @@ def prepare(message: str):
   output("Server ready and waiting at " + link("http://localhost:8080/") + "\n", logStatus.GOOD)
 
 def handleSubprocessErrors(proc):
-  for line in proc.stdout:
-    if "error" in str(line):
+  typescriptError = re.compile(r"ts\d+:", re.IGNORECASE)
+  goodKeywords = ["successfully", "0 errors"]
+  errorKeywords = ["error", "warning"]
+
+  for rawLine in proc.stdout:
+    line = rawLine.decode("utf-8").strip()
+    
+    if any([word in line.lower() for word in goodKeywords]):
+      output(line)
+    elif any([word in line.lower() for word in errorKeywords]) or typescriptError.match(line):
       output(line, logStatus.WARN)
 
 # ============== #
@@ -42,7 +49,7 @@ def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, bg_proc
     httpd.serve_forever()
   except:
     if bg_proc:
-      output("Recieved keyboard interrupt, killing compiler/bunlder and exiting...", logStatus.WARN)
+      output("Recieved keyboard interrupt, killing compiler/bundler and exiting...", logStatus.WARN)
       bg_proc.kill()
       print_thread.join()
     output("")
@@ -64,12 +71,7 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
 
     if self.path.endswith(".html") or self.path in home_paths:
       if watch:
-        compile(doOutput=True)
-
-      if doMinifyHTML:
-        pages = locateAll("./", "*.html")
-        for page in pages:
-          process_single_html_file(page, overwrite=True, output_path=page)
+        compile(doOutput=True, minifyOutput=doMinifyHTML)
     
     if jsWatcher and self.path.endswith(".js") and jsWatcher.check():
       output("JavaScript modified, minifying...", logStatus.EMPHASIS)
@@ -168,9 +170,9 @@ def serve(
     output("Watching for and minifying HTML changes...")
   
   if directory == "":
-    prepare("Serving from root directory...")
+    prepare("Serving from root directory...\n")
   else: 
-    prepare(f"Serving from {directory} directory...")
+    prepare(f"Serving from {directory} directory...\n")
 
   if useTS:
     printThread = threading.Thread(target=handleSubprocessErrors, args=(proc,))

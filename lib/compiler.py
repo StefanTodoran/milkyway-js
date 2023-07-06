@@ -2,6 +2,8 @@ import os
 import re
 import copy
 from pathlib import Path
+
+from css_html_js_minify import process_single_html_file
 from lib.utils import formatLog, logStatus, output, setOutputMode
 
 # =============== #
@@ -258,7 +260,7 @@ def concatenateComponentLines(lines):
 # ======== #
 #   MAIN   #
 
-def compile(doOutput = True):
+def compile(doOutput = True, minifyOutput = False):
   setOutputMode(not doOutput)
   output("Starting MilkywayJS compilation...", logStatus.EMPHASIS, newLine=True)
 
@@ -302,7 +304,11 @@ def compile(doOutput = True):
 
       index += 1
 
-    writeDataToFile(getSavePath(page), writeLines)
+    outputPath = getSavePath(page)
+    writeDataToFile(outputPath, writeLines)
+    
+    if minifyOutput:
+      process_single_html_file(outputPath, overwrite=True, output_path=outputPath)
 
   output(f"Compiled all {len(pages)} HTML files found\n", logStatus.GOOD)
 
