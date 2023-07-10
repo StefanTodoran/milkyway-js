@@ -130,7 +130,6 @@ def serve(
   redirect = pagesRedirect
   watch = watchComponents
   outputLoc = outDir
-  compile(doOutput=False)
   setOutputMode(False)
 
   if useTS: verifyDependencyInstallation("TypeScript")
