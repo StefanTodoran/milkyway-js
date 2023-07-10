@@ -227,6 +227,40 @@ def handleComponentIfLogic(lines: list, props: dict):
 # ======== #
 #   MISC   #
 
+# Returns a list of strings representing the lines of the component, properly populated
+# with data and with logic executed. Note that this may mutate the provided list.
+def getComponentInsert(writeLines: list, index: int) -> str:
+  component = extractComponentData(writeLines[index])
+
+  if component:
+    name = component["name"]
+    output(f"Found '{name}' component indicator, searching for file...")
+    
+    path = "./components/" + name.lower() + ".mcomp"
+    if not os.path.exists(path):
+      raise FileNotFoundError(formatLog("(!) " + path + " does not exist!", logStatus.FAIL))
+
+    splitLine = splitLineOnComponent(writeLines.pop(index))
+    componentLines = readFileData(path)
+    handleComponentIfLogic(componentLines, component["props"])
+    populateComponentData(componentLines, component["props"])
+
+    if len(componentLines) == 0:
+      # Due to if statements, the component is empty
+      return
+
+    # We do this to essentially "insert" the component
+    # between whatever tags lie on either side of the indicator.
+    componentLines[0] = splitLine[0] + componentLines[0]
+    componentLines[-1] = componentLines[-1] + splitLine[1]
+    return componentLines
+
+# Inserts the provided component lines at the specified index in the write
+# lines, then returns the new index position (end of the inserted component).
+def insertComponentLines(componentLines: list, writeLines: list, index: int):
+  writeLines[index:index] = componentLines
+  return index + len(componentLines) - 1
+
 def concatenateComponentLines(lines):
   newLines = []
   currentComponent = None
@@ -269,40 +303,23 @@ def compile(doOutput = True, minifyOutput = False):
     
     pageLines = readFileData(page)
     pageLines = concatenateComponentLines(pageLines) # This way our logic for component substitution can assume one line components
-
     writeLines = copy.copy(pageLines)
-    index = 0
 
-    for line in pageLines:
-      component = extractComponentData(line)
-    
-      if component:
-        name = component["name"]
-        output(f"Found '{name}' component indicator, searching for file...")
-        
-        path = "./components/" + name.lower() + ".mcomp"
-        if not os.path.exists(path):
-          raise FileNotFoundError(formatLog("(!) " + path + " does not exist!", logStatus.FAIL))
+    # We initialize this to True since there is no "do while"
+    # construct in Python for some reason...
+    foundComponent = True
 
-        # Note that writeLines.pop(index) == line, it's the same line!
-        splitLine = splitLineOnComponent(writeLines.pop(index))
-        componentLines = readFileData(path)
-        handleComponentIfLogic(componentLines, component["props"])
-        populateComponentData(componentLines, component["props"])
+    while foundComponent:
+      index = 0
+      foundComponent = False
+      
+      for _ in range(len(writeLines)):
+        componentLines = getComponentInsert(writeLines, index)
+        if componentLines:
+          foundComponent = True
+          index = insertComponentLines(componentLines, writeLines, index)
 
-        if len(componentLines) == 0:
-          # Due to if statements, the component is empty
-          continue
-
-        # We do this to essentially "insert" the component
-        # between whatever tags lie on either side of the indicator.
-        componentLines[0] = splitLine[0] + componentLines[0]
-        componentLines[-1] = componentLines[-1] + splitLine[1]
-
-        writeLines[index:index] = componentLines
-        index += len(componentLines) - 1
-
-      index += 1
+        index += 1
 
     outputPath = getSavePath(page)
     writeDataToFile(outputPath, writeLines)
