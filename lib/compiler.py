@@ -242,6 +242,8 @@ def getComponentInsert(writeLines: list, index: int) -> str:
 
     splitLine = splitLineOnComponent(writeLines.pop(index))
     componentLines = readFileData(path)
+    componentLines = concatenateComponentLines(componentLines)
+
     handleComponentIfLogic(componentLines, component["props"])
     populateComponentData(componentLines, component["props"])
 
