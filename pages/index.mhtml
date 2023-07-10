@@ -24,7 +24,6 @@
 
     <p>Run <!-- %MLKY COMMAND-SNIPPET text="manage.py runserver --watch" --> to get started!</p>
     <p>Click <a class="magic-text" href="/milkyway-js/about">this link</a> to check out another page.</p>
-    <!-- %MLKY TEST a="A" b="B" c="C" -->
   </section>
 
   <!-- %MLKY FOOTER -->

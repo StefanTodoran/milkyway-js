@@ -249,6 +249,9 @@ def getComponentInsert(writeLines: list, index: int) -> str:
       # Due to if statements, the component is empty
       return
 
+    for subindex in range(len(componentLines)):
+      subindex = handleComponent(componentLines, subindex)
+
     # We do this to essentially "insert" the component
     # between whatever tags lie on either side of the indicator.
     componentLines[0] = splitLine[0] + componentLines[0]
@@ -260,6 +263,16 @@ def getComponentInsert(writeLines: list, index: int) -> str:
 def insertComponentLines(componentLines: list, writeLines: list, index: int):
   writeLines[index:index] = componentLines
   return index + len(componentLines) - 1
+
+# Given a list of string lines and an index, if there is a component on the target line,
+# replaces the component token with the component lines, populates the component's props,
+# executes the component's if clause logic, and recurses on any nested components. Returns
+# the new index position (the end of the inserted component).
+def handleComponent(writeLines: list, index: int):
+  componentLines = getComponentInsert(writeLines, index)
+  if componentLines:
+    return insertComponentLines(componentLines, writeLines, index)
+  return index
 
 def concatenateComponentLines(lines):
   newLines = []
@@ -303,23 +316,13 @@ def compile(doOutput = True, minifyOutput = False):
     
     pageLines = readFileData(page)
     pageLines = concatenateComponentLines(pageLines) # This way our logic for component substitution can assume one line components
+
     writeLines = copy.copy(pageLines)
+    index = 0
 
-    # We initialize this to True since there is no "do while"
-    # construct in Python for some reason...
-    foundComponent = True
-
-    while foundComponent:
-      index = 0
-      foundComponent = False
-      
-      for _ in range(len(writeLines)):
-        componentLines = getComponentInsert(writeLines, index)
-        if componentLines:
-          foundComponent = True
-          index = insertComponentLines(componentLines, writeLines, index)
-
-        index += 1
+    for line in pageLines:
+      index = handleComponent(writeLines, index)
+      index += 1
 
     outputPath = getSavePath(page)
     writeDataToFile(outputPath, writeLines)
