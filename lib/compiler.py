@@ -9,7 +9,7 @@ from lib.utils import formatLog, logStatus, output, setOutputMode
 # =============== #
 # FILE MANAGEMENT #
 
-def readFileData(path: str):
+def readFileData(path: str | Path) -> list[str]:
   output("Reading HTML data from " + str(path))
 
   with open(path, "r", encoding="utf8") as file:
@@ -101,7 +101,7 @@ def extractIfClause(string, number = 0):
 # =============== #
 # DATA POPULATING #
 
-def splitLineOnComponent(line):
+def splitLineOnComponent(line) -> list[str]:
   pattern = r"<!--\s*%MLKY.*?\s*-->"
   parts = re.split(pattern, line)
   return parts
@@ -229,7 +229,7 @@ def handleComponentIfLogic(lines: list, props: dict):
 
 # Returns a list of strings representing the lines of the component, properly populated
 # with data and with logic executed. Note that this may mutate the provided list.
-def getComponentInsert(writeLines: list, index: int) -> str:
+def getComponentInsert(writeLines: list, index: int) -> list[str] | None:
   component = extractComponentData(writeLines[index])
 
   if component:
@@ -242,7 +242,6 @@ def getComponentInsert(writeLines: list, index: int) -> str:
 
     splitLine = splitLineOnComponent(writeLines.pop(index))
     componentLines = readFileData(path)
-    componentLines = concatenateComponentLines(componentLines)
 
     handleComponentIfLogic(componentLines, component["props"])
     populateComponentData(componentLines, component["props"])
@@ -250,9 +249,6 @@ def getComponentInsert(writeLines: list, index: int) -> str:
     if len(componentLines) == 0:
       # Due to if statements, the component is empty
       return
-
-    for subindex in range(len(componentLines)):
-      subindex = handleComponent(componentLines, subindex)
 
     # We do this to essentially "insert" the component
     # between whatever tags lie on either side of the indicator.
@@ -276,7 +272,7 @@ def handleComponent(writeLines: list, index: int):
     return insertComponentLines(componentLines, writeLines, index)
   return index
 
-def concatenateComponentLines(lines):
+def concatenateComponentLines(lines) -> list[str]:
   newLines = []
   currentComponent = None
 
@@ -309,28 +305,42 @@ def concatenateComponentLines(lines):
 # ======== #
 #   MAIN   #
 
+def compileFile(targetFile, doOutput = True, minifyOutput = False):
+  setOutputMode(not doOutput)
+    
+  pageLines = readFileData(targetFile)
+  writeLines = copy.copy(pageLines)
+
+  # We initialize this to True since there is no "do while"
+  # construct in Python for some reason...
+  foundComponent = True
+
+  while foundComponent:
+    foundComponent = False
+    writeLines = concatenateComponentLines(writeLines) # This way our logic for component substitution can assume one line components
+    
+    index = 0
+    for _ in range(len(writeLines)):
+      componentLines = getComponentInsert(writeLines, index)
+      if componentLines:
+        foundComponent = True
+        index = insertComponentLines(componentLines, writeLines, index)
+
+      index += 1
+
+  outputPath = getSavePath(targetFile)
+  writeDataToFile(outputPath, writeLines)
+  
+  if minifyOutput:
+    process_single_html_file(outputPath, overwrite=True, output_path=outputPath)
+
 def compile(doOutput = True, minifyOutput = False):
   setOutputMode(not doOutput)
   output("Starting MilkywayJS compilation...", logStatus.EMPHASIS, newLine=True)
 
   pages = locateAllPages("./pages/")
   for page in pages:
-    
-    pageLines = readFileData(page)
-    pageLines = concatenateComponentLines(pageLines) # This way our logic for component substitution can assume one line components
-
-    writeLines = copy.copy(pageLines)
-    index = 0
-
-    for line in pageLines:
-      index = handleComponent(writeLines, index)
-      index += 1
-
-    outputPath = getSavePath(page)
-    writeDataToFile(outputPath, writeLines)
-    
-    if minifyOutput:
-      process_single_html_file(outputPath, overwrite=True, output_path=outputPath)
+    compileFile(page, doOutput, minifyOutput)
 
   output(f"Compiled all {len(pages)} HTML files found\n", logStatus.GOOD)
 

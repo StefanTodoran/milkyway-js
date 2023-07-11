@@ -1,3 +1,4 @@
 /node_modules/
 __pycache__
 /manage/__pycache__
+.vscode

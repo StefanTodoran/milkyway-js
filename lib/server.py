@@ -71,12 +71,11 @@ class NoExtensionHandler(SimpleHTTPRequestHandler):
 
     if self.path.endswith(".html") or self.path in home_paths:
       if watch:
+        # compileFile(self.path, doOutput=True, minifyOutput=doMinifyHTML)
         compile(doOutput=True, minifyOutput=doMinifyHTML)
     
     if jsWatcher and self.path.endswith(".js") and jsWatcher.check():
       output("JavaScript modified, minifying...", logStatus.EMPHASIS)
-      # unminifiedScript = "." + self.path.replace(".min", "")
-      # process_single_js_file(unminifiedScript, overwrite=False)
       process_single_js_file(self.path, overwrite=True)
     
     if cssWatcher and self.path.endswith(".css") and cssWatcher.check():
@@ -147,8 +146,6 @@ def serve(
     try:
       output("\nStarting Webpack bundler...") 
       proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=subprocess.PIPE)
-      # FNULL = open(os.devnull, "w")
-      # proc = subprocess.Popen(["npx", "webpack", "--watch"], shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
     except:
       raise EnvironmentError(formatLog("Failed to start TypeScript compiler, verify npx and webpack cli are installed.", logStatus.FAIL))
 

@@ -11,7 +11,7 @@ def setOutputMode(isSilent):
   global silent
   silent = isSilent
 
-def formatLog(data, status):
+def formatLog(data, status = None):
   pre = ""
   if status == logStatus.GOOD:
     pre = "($) "
