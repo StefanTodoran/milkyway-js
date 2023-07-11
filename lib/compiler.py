@@ -305,11 +305,9 @@ def concatenateComponentLines(lines) -> list[str]:
 # ======== #
 #   MAIN   #
 
-def compileFile(targetFile, doOutput = True, minifyOutput = False):
+def doComponentSubstitutions(inputLines, doOutput = True):
   setOutputMode(not doOutput)
-    
-  pageLines = readFileData(targetFile)
-  writeLines = copy.copy(pageLines)
+  writeLines = copy.copy(inputLines)
 
   # We initialize this to True since there is no "do while"
   # construct in Python for some reason...
@@ -328,6 +326,12 @@ def compileFile(targetFile, doOutput = True, minifyOutput = False):
 
       index += 1
 
+  return writeLines
+
+def compileFile(targetFile, doOutput = True, minifyOutput = False):
+  pageLines = readFileData(targetFile)
+  writeLines = doComponentSubstitutions(pageLines, doOutput)
+
   outputPath = getSavePath(targetFile)
   writeDataToFile(outputPath, writeLines)
   
@@ -335,7 +339,6 @@ def compileFile(targetFile, doOutput = True, minifyOutput = False):
     process_single_html_file(outputPath, overwrite=True, output_path=outputPath)
 
 def compile(doOutput = True, minifyOutput = False):
-  setOutputMode(not doOutput)
   output("Starting MilkywayJS compilation...", logStatus.EMPHASIS, newLine=True)
 
   pages = locateAllPages("./pages/")

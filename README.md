@@ -137,9 +137,11 @@ This isn't meant to be a web framework. It is merely a useful template for mediu
 
 * Run webpack in development mode, then run once in production mode when running `build` command
 * Put transpiled `.html` pages in their own folder?
-* Add bare compile option to manage.py script 
+* Add bare compile option to manage.py script
+  * Modify server to compile only the currently requested resource
 * More settings in configuration file
-* Stress test compiler code for both components and if clauses
+* Build up test suite for compiler code
+  * Create components for use in these tests
 * Improve compiler by allowing boolean components to be written as `prop` rather than `prop=""` or `prop="true"`
 * Add "and" and "or" logic inside if clauses?
 * Improve the basic template HTML, CSS and TS
